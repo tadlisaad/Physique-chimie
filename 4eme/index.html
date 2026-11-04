@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Transformations chimiques · 4ème</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Même charte que la page de 3ème : rail vertical des créneaux, une paillasse interactive par créneau.
+   Les couleurs des atomes suivent le code habituel des kits moléculaires ; tout le reste passe par les tokens. */
+:root{
+  --bg:#f1f5f6; --surface:#ffffff; --surface-2:#e5ecef; --fg:#13232b; --muted:#4f6670; --line:#cbd8dd;
+  --accent:#0a7872; --accent-fg:#ffffff; --accent-soft:#d6efec;
+  --good:#1c7f45; --warn:#a85408; --bad:#bb3128;
+  --h-ion:#d8481f; --oh-ion:#2468c9; --glass:#7f9aa5; --shadow:0 1px 2px rgba(19,35,43,.08),0 6px 20px rgba(19,35,43,.06);
+  --f-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --f-body:'Instrument Sans','Segoe UI',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1920; --surface:#15262f; --surface-2:#1d333f; --fg:#e5eff2; --muted:#9bb2bb; --line:#2b4553;
+  --accent:#4fd1c5; --accent-fg:#06282a; --accent-soft:#17413f;
+  --good:#58c486; --warn:#e9a250; --bad:#f0786d; --h-ion:#f06a3f; --oh-ion:#5b9bf2; --glass:#6f8d99; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1920; --surface:#15262f; --surface-2:#1d333f; --fg:#e5eff2; --muted:#9bb2bb; --line:#2b4553;
+  --accent:#4fd1c5; --accent-fg:#06282a; --accent-soft:#17413f;
+  --good:#58c486; --warn:#e9a250; --bad:#f0786d; --h-ion:#f06a3f; --oh-ion:#5b9bf2; --glass:#6f8d99; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+  color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 var(--f-body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:60}
+button,select,input{font:inherit;color:inherit}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.1;margin:0;text-wrap:balance}
+p{margin:0}
+sub,sup{line-height:0}
+.mono{font-family:var(--f-mono)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* squelette : rail + contenu */
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:100vh}
+.rail{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;height:calc(100vh - env(safe-area-inset-top,0px));padding:22px 14px 18px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:6px;border-right:1px solid var(--line);overflow:auto}
+.brand{font:700 15px/1.2 var(--f-display);letter-spacing:.01em;margin-bottom:10px}
+.brand small{display:block;font:500 12px var(--f-body);color:var(--muted);margin-top:3px}
+.rail a{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start;padding:7px 8px;border-radius:9px;color:var(--muted);text-decoration:none;font-size:14px;line-height:1.25}
+.rail a b{font:500 12px var(--f-mono);display:grid;place-items:center;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);color:var(--muted)}
+.rail a:hover{background:var(--surface-2);color:var(--fg)}
+.rail a.on{background:var(--accent-soft);color:var(--fg)}
+.rail a.on b{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.rail .tools{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:14px}
+.chip-btn{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+.chip-btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+main{min-width:0;padding-block:0 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto}
+section.slot{padding-top:64px}
+.kicker{font:500 12px var(--f-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--accent);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.kicker .fmt{background:var(--accent-soft);padding:2px 9px;border-radius:999px;letter-spacing:.06em}
+h2{font-size:clamp(28px,4.2vw,46px);margin:10px 0 8px;letter-spacing:-.01em}
+h3{font-size:clamp(20px,2.4vw,25px);margin:34px 0 10px}
+.lead{color:var(--muted);max-width:62ch;font-size:17px}
+.goals{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+.goals li{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.btn{border:0;background:var(--accent);color:var(--accent-fg);border-radius:10px;padding:9px 16px;font-weight:600;cursor:pointer}
+.btn.alt{background:var(--surface-2);color:var(--fg)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.note{font-size:14px;color:var(--muted)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 12px 12px 0}
+.ion{font-family:var(--f-mono);white-space:nowrap}
+.tnote{display:none;margin-top:16px;border:1.5px dashed var(--warn);border-radius:12px;padding:12px 16px;font-size:14px}
+.tnote b{color:var(--warn);font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px}
+body.prof .tnote{display:block}
+.seg{display:flex;height:26px;border-radius:8px;overflow:hidden;margin-top:8px;font:500 11px var(--f-mono)}
+.seg span{display:grid;place-items:center;color:#fff;white-space:nowrap;overflow:hidden;padding:0 4px}
+
+/* hero */
+.hero{padding-top:56px}
+.hero h1{font-size:clamp(38px,7vw,84px);letter-spacing:-.025em;max-width:14ch}
+.hero .sub{font-size:19px;color:var(--muted);max-width:56ch;margin-top:16px}
+.floaters{position:relative;height:150px;margin-top:20px}
+.floaters span{position:absolute;font:700 34px var(--f-display);padding:6px 16px;border-radius:999px;border:2px solid currentColor;animation:bob 6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-12px)}}
+.steps3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:26px}
+.steps3 a{display:block;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:inherit}
+.steps3 a:hover{border-color:var(--accent)}
+.steps3 b{display:block;font:700 18px var(--f-display);margin-bottom:2px}
+.steps3 span{font-size:14px;color:var(--muted)}
+
+/* sécurité */
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:18px}
+.rule{text-align:left;cursor:pointer;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 16px;transition:border-color .2s,background .2s}
+.rule h4{font-size:18px;display:flex;justify-content:space-between;gap:8px}
+.rule p{font-size:14px;color:var(--muted);margin-top:5px}
+.rule .tick{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:13px}
+.rule.on{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,var(--surface))}
+.rule.on .tick{background:var(--good);border-color:var(--good);color:#fff}
+.ready{margin-top:14px;font-weight:600;min-height:28px}
+.ready.go{color:var(--good);animation:pop .5s}
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.06)}}
+
+/* tubes */
+.bench{display:flex;flex-direction:column;gap:18px;margin-top:14px}
+.bench .brow{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px 10px}
+.bench .brow>header{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between}
+.bench h4{font-size:17px}
+.tubes{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px}
+.tube{background:none;border:0;padding:4px 6px;cursor:pointer;position:relative;width:86px;display:flex;flex-direction:column;align-items:center;border-radius:12px}
+.tube:hover{background:var(--surface-2)}
+.tube svg{width:62px;height:150px;overflow:visible}
+.tube .lab{font:700 20px var(--f-display)}
+.tube .cnt{font:500 12px var(--f-mono);color:var(--muted);min-height:16px}
+.tube .cnt.full{color:var(--good)}
+.tube .nm{font-size:11px;color:var(--muted);text-align:center;line-height:1.2;min-height:28px}
+.glass{fill:none;stroke:var(--glass);stroke-width:3;stroke-linecap:round}
+.cloud{opacity:0;transition:opacity 1s,transform 2.2s ease-in;filter:blur(5px)}
+.settle{opacity:0;transition:opacity 2.4s .6s}
+.tube.hit .cloud{opacity:.85}
+.tube.hit.settled .cloud{opacity:.15;transform:translateY(34px)}
+.tube.hit.settled .settle{opacity:1}
+.tube.sun .settle,.tube.sun .cloud{fill:#4a4a4a!important}
+.settle,.cloud{transition-property:opacity,transform,fill}
+.drop{position:absolute;left:50%;top:6px;width:7px;height:10px;margin-left:-3px;border-radius:50% 50% 55% 55%;background:var(--glass);opacity:.85;animation:fall .42s ease-in forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(52px);opacity:.3}}
+.toast{font-size:13px;color:var(--warn);min-height:19px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font:500 12px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.tscroll table{min-width:620px}
+.ions{display:flex;flex-wrap:wrap;gap:5px}
+.ions button{border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:2px 8px;font:500 13px var(--f-mono);cursor:pointer}
+.ions button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.res{font-weight:600}.res.ok{color:var(--good)}.res.ko{color:var(--bad)}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
+
+/* pH */
+.phbar{height:30px;border-radius:15px;background:linear-gradient(90deg,#e0262d,#ee5a24 14%,#f2a516 28%,#d6d93a 42%,#4fb35a 50%,#2aa6a0 64%,#3569c9 80%,#5b3fa8 93%,#4b2f8a);position:relative;margin:34px 0 8px}
+.phbar .mk{position:absolute;top:-8px;width:4px;height:46px;background:var(--fg);border-radius:2px;transition:left .35s cubic-bezier(.3,1.4,.5,1);margin-left:-2px}
+.phbar .mk i{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font:700 14px var(--f-mono);background:var(--fg);color:var(--bg);border-radius:6px;padding:0 7px;font-style:normal}
+.phticks{display:flex;justify-content:space-between;font:500 12px var(--f-mono);color:var(--muted)}
+.products{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.products button{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:14px}
+.products button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.phrange{width:100%;accent-color:var(--accent);margin-top:6px}
+.swarm{width:100%;height:210px;border-radius:14px;background:var(--surface-2);display:block}
+.legend{display:flex;gap:14px;font-size:13px;margin-top:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.verdict{font:700 22px var(--f-display);margin-bottom:6px}
+.beakers{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.bk{width:112px;text-align:center}
+.bk svg{width:100%;height:auto}
+.bk .nm{font:700 15px var(--f-display)}
+.bk .ph{font:500 14px var(--f-mono)}
+.bk .hb{height:7px;border-radius:4px;background:var(--surface-2);margin:5px 6px 0;overflow:hidden}
+.bk .hb i{display:block;height:100%;background:var(--h-ion);transition:width .6s}
+.bk.off{opacity:.28}
+.bk.cur{transform:translateY(-4px)}
+select.sel,input.num{border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 8px}
+input.num{width:70px}
+
+/* titrage */
+.titr{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:760px){.titr{grid-template-columns:1fr}}
+.curve{width:100%;height:auto;background:var(--surface-2);border-radius:12px}
+.curve text{fill:var(--muted);font:11px var(--f-mono)}
+.eqn{font:500 22px var(--f-mono);text-align:center;padding:8px;transition:color .3s,transform .3s}
+.eqn.pulse{color:var(--accent);transform:scale(1.07)}
+
+/* tp4 */
+.scene{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px}
+@media(max-width:760px){.scene{grid-template-columns:1fr}}
+.tubebig{position:relative;width:150px;margin:0 auto}
+.tubebig svg{width:100%;height:auto;overflow:visible}
+.bub{position:absolute;border-radius:50%;border:1.5px solid rgba(255,255,255,.9);background:rgba(255,255,255,.35);animation:rise 2.4s linear forwards;pointer-events:none}
+@keyframes rise{to{transform:translateY(-190px);opacity:0}}
+.flame{position:absolute;left:30%;top:-34px;width:36px;height:46px;opacity:0;pointer-events:none}
+.flame.on{animation:flash 1.3s}
+@keyframes flash{10%{opacity:1}50%{opacity:1;transform:scale(1.5)}100%{opacity:0;transform:scale(2)}}
+.popt{position:absolute;left:55%;top:-46px;font:700 22px var(--f-display);color:var(--warn);opacity:0}
+.popt.on{animation:poptxt 1.3s}
+@keyframes poptxt{20%{opacity:1;transform:scale(1.2) rotate(-6deg)}80%{opacity:1}100%{opacity:0}}
+.progress{height:8px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0}
+.tok{display:inline-grid;place-items:center;min-width:34px;height:34px;padding:0 6px;border-radius:50%;font:500 13px var(--f-mono);color:#fff;animation:tin .3s}
+@keyframes tin{from{transform:scale(.4)}}
+.tok.fe{background:#6c7479;border-radius:9px}.tok.fe2{background:#5f9a58}.tok.h{background:var(--h-ion)}.tok.h2{background:#c9a21e;border-radius:9px}.tok.cl{background:#8b8f99;outline:2px dashed var(--accent);outline-offset:2px}
+.toks{display:flex;flex-wrap:wrap;gap:6px;min-height:40px}
+.ionpanel{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:620px){.ionpanel{grid-template-columns:1fr}}
+.ionpanel h4{font-size:15px;margin-bottom:8px;color:var(--muted)}
+.qa{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.qa .a{display:none;border-top:1px dashed var(--line);padding-top:8px;color:var(--good);font-weight:500}
+.qa.open .a{display:block}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 14px;cursor:pointer;font-weight:600}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.obs{list-style:none;padding:0;margin:10px 0;display:grid;gap:6px}
+.obs li{background:var(--surface-2);border-radius:9px;padding:7px 12px}
+.fb{margin-top:10px;padding:10px 14px;border-radius:10px;background:var(--surface-2);min-height:44px}
+.fb.ok{background:color-mix(in srgb,var(--good) 14%,var(--surface))}
+.fb.ko{background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.balls{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.bl{display:inline-grid;place-items:center;min-width:34px;height:34px;border-radius:50%;color:#fff;font:500 12px var(--f-mono);padding:0 5px}
+.mist{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
+.mist span{width:50px;height:78px;position:relative}
+footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+
+/* mobile : le rail devient une barre horizontale */
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .rail{position:sticky;top:env(safe-area-inset-top,0px);height:auto;z-index:50;flex-direction:row;align-items:center;gap:4px;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));border-right:0;border-bottom:1px solid var(--line);background:var(--bg);overflow-x:auto}
+  .brand{display:none}
+  .rail a{grid-template-columns:auto;padding:4px;flex:none}
+  .rail a span{display:none}
+  .rail .tools{margin:0 0 0 auto;padding:0;flex-direction:row;flex:none}
+  html{scroll-padding-top:64px}
+}
+
+/* ---------- 4ème : atomes, plateau, simulateur ---------- */
+.hero h1{max-width:18ch;font-size:clamp(34px,6.2vw,72px)}
+.rail a.back{display:block;grid-template-columns:none;padding:4px 8px;font-size:13px;margin-bottom:6px}
+.at{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font:600 13px var(--f-mono);border:1.5px solid var(--glass);flex:none}
+.atoms{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.mol{display:inline-flex;flex-wrap:wrap;gap:2px;padding:4px 6px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);align-items:center;max-width:100%}
+.mol .at{width:26px;height:26px;font-size:12px}
+.plate{min-height:64px;margin-top:12px;border:2px dashed var(--line);border-radius:14px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--surface-2)}
+.plate button{border:0;background:none;padding:0;cursor:pointer;border-radius:50%}
+.plate:empty::before{content:"Clique sur un atome pour l’ajouter ici.";color:var(--muted);font-size:14px}
+.addat{display:inline-flex;align-items:center;gap:6px}
+.stepper{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:4px 6px}
+.stepper button{width:30px;height:30px;border:0;border-radius:8px;background:var(--surface-2);cursor:pointer;font:700 18px var(--f-body)}
+.stepper output{min-width:22px;text-align:center;font:700 20px var(--f-mono)}
+.eqrow{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;font:500 22px var(--f-mono)}
+.eqrow .sp{display:inline-flex;align-items:center;gap:6px}
+.eqrow select.sel{font:500 20px var(--f-mono)}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px}
+.tally div{border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;font:500 14px var(--f-mono);background:var(--surface)}
+.tally div.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 12%,var(--surface))}
+.tally div.ko{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--surface))}
+.sim{display:grid;grid-template-columns:minmax(180px,230px) minmax(0,1fr);gap:22px;align-items:center}
+@media(max-width:700px){.sim{grid-template-columns:1fr}}
+.sim svg{width:100%;height:auto;max-width:230px;margin:0 auto;display:block;overflow:visible}
+.read{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.read div{background:var(--surface-2);border-radius:12px;padding:10px 14px}
+.read b{display:block;font:700 22px var(--f-mono)}
+@keyframes bbup{to{transform:translateY(-62px);opacity:0}}
+.bb{animation:bbup 1.7s linear forwards}
+@keyframes gasout{0%{opacity:0}20%{opacity:1}to{transform:translateY(-40px);opacity:0}}
+.gas{opacity:0;font:700 16px var(--f-mono);fill:var(--accent)}
+.gas.on{animation:gasout 2.4s ease-out .3s}
+.choice{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 12px;cursor:pointer;margin-top:6px}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--surface))}
+.choice.ko{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.choice:disabled{cursor:default}
+.bigeq{font:500 clamp(18px,3vw,28px)/1.5 var(--f-mono);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.steps ol{margin:8px 0 0;padding-left:20px}.steps li{margin:4px 0}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="rail" aria-label="Les cinq créneaux">
+    <a class="back" href="../">← Accueil</a>
+    <div class="brand">Transformations<br>chimiques<small>Physique-chimie · 4ème</small></div>
+    <a href="#creneau-1" data-s="creneau-1"><b>1</b><span>TP · Que se passe-t-il quand ça change ?</span></a>
+    <a href="#creneau-2" data-s="creneau-2"><b>2</b><span>Kits · Atomes, molécules, formules</span></a>
+    <a href="#creneau-3" data-s="creneau-3"><b>3</b><span>Kits · La combustion du méthane</span></a>
+    <a href="#creneau-4" data-s="creneau-4"><b>4</b><span>Cours · Écrire et ajuster l’équation</span></a>
+    <a href="#creneau-5" data-s="creneau-5"><b>5</b><span>Bilan · Exercices et quiz</span></a>
+    <div class="tools">
+      <button class="chip-btn" id="profBtn" aria-pressed="false">Notes prof</button>
+      <button class="chip-btn" id="themeBtn" aria-label="Changer de thème">Thème</button>
+    </div>
+  </nav>
+
+  <main>
+  <div class="wrap">
+
+  <header class="hero" id="intro">
+    <div class="kicker">Physique-chimie · 4ème · EFI Casablanca</div>
+    <h1>Transformations chimiques</h1>
+    <p class="sub">Observer ce qui change quand on mélange deux produits, puis l’expliquer avec des atomes et des molécules, jusqu’à l’équation ajustée. Cinq créneaux.</p>
+    <div class="floaters" aria-hidden="true">
+      <span style="left:2%;top:10px;color:var(--oh-ion);animation-delay:-1s">H₂O</span>
+      <span style="left:24%;top:60px;color:var(--h-ion);animation-delay:-3s">CH₄</span>
+      <span style="left:46%;top:6px;color:var(--muted);animation-delay:-2s">CO₂</span>
+      <span style="left:64%;top:64px;color:var(--accent);animation-delay:-4s">O₂</span>
+    </div>
+    <div class="steps3">
+      <a href="#creneau-1"><b>Observer</b><span>Créneau 1 · bicarbonate et vinaigre</span></a>
+      <a href="#creneau-2"><b>Modéliser</b><span>Créneaux 2 et 3 · atomes, molécules, combustion</span></a>
+      <a href="#creneau-4"><b>Écrire</b><span>Créneaux 4 et 5 · équation ajustée, bilan</span></a>
+    </div>
+    <h3>Avant de commencer : quatre règles de sécurité</h3>
+    <p class="note">Clique sur chaque règle quand tu l’as lue. Les quatre cochées, tu es prêt pour la salle de TP.</p>
+    <div class="rules" id="rules"></div>
+    <div class="ready" id="ready" aria-live="polite"></div>
+    <div class="tnote"><b>Notes prof</b>Fil rouge : la matière ne disparaît pas, les atomes se réarrangent. Les créneaux 1 à 3 se font en demi-groupe avec les kits, le 4 en classe ou en demi-groupe avec ordinateurs, le 5 en classe entière. Selon l’emploi du temps de chaque classe, le créneau 2 (construire les molécules) peut précéder ou suivre un moment de cours : le contenu reste le même.</div>
+  </header>
+
+  <!-- CRENEAU 1 -->
+  <section class="slot" id="creneau-1">
+    <div class="kicker"><span>Créneau 1</span><span class="fmt">TP · demi-groupe</span></div>
+    <h2>Que se passe-t-il quand ça change ?</h2>
+    <ul class="goals"><li>Je repère les signes d’une transformation chimique</li><li>Je distingue réactifs et produits</li><li>Je compare la masse avant et après</li></ul>
+
+    <h3>Quatre indices qu’une transformation chimique a lieu</h3>
+    <div class="grid g3">
+      <div class="card"><h4>Un gaz apparaît</h4><p class="note" style="margin-top:6px">Des bulles se forment dans un liquide.</p></div>
+      <div class="card"><h4>La couleur change</h4><p class="note" style="margin-top:6px">Un produit coloré apparaît, ou une couleur disparaît.</p></div>
+      <div class="card"><h4>La température change</h4><p class="note" style="margin-top:6px">Le mélange chauffe ou refroidit tout seul.</p></div>
+      <div class="card"><h4>Un solide apparaît</h4><p class="note" style="margin-top:6px">Un dépôt se forme dans un liquide limpide.</p></div>
+    </div>
+    <p class="callout" style="margin-top:14px">Attention : un glaçon qui fond n’est pas une transformation chimique. L’eau reste de l’eau, seul son état change.</p>
+
+    <h3>L’expérience : bicarbonate de sodium et vinaigre</h3>
+    <p class="note" style="margin-bottom:10px">Prévois d’abord ce que la balance va indiquer, puis clique sur « Mélanger ». Essaie les deux types de récipient.</p>
+    <div class="card sim">
+      <svg id="flask" viewBox="0 -44 160 254" role="img" aria-label="Erlenmeyer contenant du vinaigre et du bicarbonate, posé sur une balance">
+        <defs><clipPath id="flc"><path d="M62 34 V82 L26 164 Q22 184 40 184 H120 Q138 184 134 164 L98 82 V34 Z"/></clipPath></defs>
+        <rect x="12" y="184" width="136" height="16" rx="6" fill="var(--surface-2)" stroke="var(--glass)" stroke-width="2"/>
+        <g clip-path="url(#flc)">
+          <rect x="0" y="128" width="160" height="60" fill="#d9c987" opacity=".8"/>
+          <ellipse id="pow" cx="80" cy="178" rx="26" ry="7" fill="#f4f4f0"/>
+          <g id="bubs"></g>
+        </g>
+        <path d="M62 34 V82 L26 164 Q22 184 40 184 H120 Q138 184 134 164 L98 82 V34" fill="none" stroke="var(--glass)" stroke-width="3" stroke-linecap="round"/>
+        <g id="balG" style="transform-origin:80px 34px;transform:scale(.12);transition:transform 1.8s ease-out"><ellipse cx="80" cy="0" rx="30" ry="34" fill="#d8352a" fill-opacity=".45" stroke="var(--glass)" stroke-width="2"/></g>
+        <text id="gas" class="gas" x="80" y="20" text-anchor="middle">CO₂ ↑</text>
+      </svg>
+      <div>
+        <div class="tabs" id="simMode" role="tablist" aria-label="Type de récipient">
+          <button role="tab" aria-selected="true" data-m="closed">Récipient fermé (ballon)</button>
+          <button role="tab" aria-selected="false" data-m="open">Récipient ouvert</button>
+        </div>
+        <div class="read"><div><span class="note">Balance avant</span><b id="mBefore">148,20 g</b></div><div><span class="note">Balance après</span><b id="mAfter">—</b></div></div>
+        <div class="row" style="margin-top:12px"><button class="btn" id="mix">Mélanger</button><button class="btn alt" id="again">Recommencer</button></div>
+        <div class="fb" id="simfb" aria-live="polite"></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:8px">Simulation : valeurs d’une expérience idéale avec environ 0,5 g de bicarbonate. Ta balance peut différer de quelques centigrammes.</p>
+
+    <h3>Réactif ou produit ?</h3>
+    <p class="note">Un réactif disparaît pendant la transformation. Un produit apparaît. Classe chaque substance.</p>
+    <div class="grid g3" id="cls" style="margin-top:10px"></div>
+    <p class="note" style="margin-top:8px">D’autres produits se forment aussi, dissous dans le liquide : on ne les voit pas.</p>
+    <div class="tnote"><b>Notes prof · chronologie</b>Accroche 5 min (glaçon, bougie, pain grillé : qui est chimique ?), protocole 5, manipulation 25, mise en commun 12, ticket de sortie 8. Matériel par groupe : Erlenmeyer ou petit flacon, bicarbonate (0,5 g), vinaigre blanc, balance au centigramme, ballon de baudruche. Sécurité : en système fermé, très petites quantités et jamais de verre bouché de façon étanche avec beaucoup de produit (surpression), à valider avec ton protocole habituel. Piège de mesure : un ballon gonflé subit la poussée de l’air et fait baisser la lecture de quelques dixièmes de gramme même en système fermé : prévois d’en discuter ou prends un flacon bouché avec très peu de bicarbonate.</div>
+  </section>
+
+  <!-- CRENEAU 2 -->
+  <section class="slot" id="creneau-2">
+    <div class="kicker"><span>Créneau 2</span><span class="fmt">TP avec kits · demi-groupe</span></div>
+    <h2>Atomes, molécules et formules</h2>
+    <ul class="goals"><li>Je distingue un atome d’une molécule</li><li>Je lis une formule chimique</li><li>Je construis une molécule avec le kit</li></ul>
+    <p class="callout" style="margin-top:18px">Pense aux Lego : avec les mêmes briques, on construit une maison, puis on la démonte pour construire un vaisseau. Les briques sont les atomes. Les constructions sont les molécules.</p>
+
+    <h3>Les quatre atomes de la séquence</h3>
+    <div class="grid g3" id="palette"></div>
+
+    <h3>Quelques molécules à connaître</h3>
+    <div class="tscroll"><table>
+      <thead><tr><th>Nom</th><th>Formule</th><th>Atomes</th><th>Total</th></tr></thead>
+      <tbody id="moltab"></tbody></table></div>
+
+    <h3>Construis la molécule</h3>
+    <p class="note">Choisis une molécule, ajoute des atomes sur le plateau (clique sur un atome du plateau pour le retirer). Au kit, tu ajouteras ensuite les bâtonnets.</p>
+    <div class="card" id="builder" style="margin-top:10px"></div>
+
+    <h3>Lire une formule : l’indice et le coefficient</h3>
+    <div class="cmp" id="idx"></div>
+    <p class="callout" style="margin-top:14px">L’indice (petit, en bas) compte les atomes de la molécule. Le coefficient (grand, devant) compte les molécules. On ne confond jamais les deux.</p>
+
+    <h3>Trois questions</h3>
+    <div class="grid g3" id="q2"></div>
+    <div class="tnote"><b>Notes prof</b>Accroche Lego 5 min, atomes et formules 10, construction guidée au kit 25 (H₂O, O₂, H₂, CO₂, CH₄), vérification entre groupes 8, ticket de sortie 7. Les couleurs de la page suivent le code habituel (H blanc, C noir, O rouge, N bleu) : adapte-les si les boules de ton kit diffèrent. Pièges : « molécule de H » à la place de H₂ ; compter les bâtonnets comme des atomes ; confondre H₂ (une molécule) et 2 H (deux atomes séparés).</div>
+  </section>
+
+  <!-- CRENEAU 3 -->
+  <section class="slot" id="creneau-3">
+    <div class="kicker"><span>Créneau 3</span><span class="fmt">TP avec kits · demi-groupe</span></div>
+    <h2>La combustion du méthane : tout se conserve</h2>
+    <ul class="goals"><li>Je démonte les réactifs et je reconstruis les produits</li><li>Je compte les atomes de chaque côté</li><li>J’ajuste le nombre de molécules</li></ul>
+    <p class="lead" style="margin-top:14px">Le méthane, le gaz de ville, brûle dans le dioxygène de l’air. Il se forme du dioxyde de carbone et de l’eau. Que deviennent les atomes ?</p>
+
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card steps"><h4>Au kit, en quatre temps</h4>
+        <ol>
+          <li>Construis 1 molécule de méthane CH₄ et 1 molécule de dioxygène O₂.</li>
+          <li>Démonte-les : tu as 1 atome C, 4 atomes H et 2 atomes O.</li>
+          <li>Reconstruis du dioxyde de carbone CO₂ et de l’eau H₂O avec ces atomes.</li>
+          <li>Que reste-t-il ? Il manque des atomes O : ajoute des molécules de O₂ et recommence.</li>
+        </ol></div>
+      <div class="card"><h4>L’idée à retenir</h4><p style="margin-top:8px">Les atomes ne disparaissent pas et n’apparaissent pas : ils changent de partenaires. Il y a donc autant d’atomes de chaque sorte avant et après.</p><p class="note" style="margin-top:8px">C’est pour cela que la masse se conserve, comme au créneau 1.</p></div>
+    </div>
+
+    <h3>Le simulateur de combustion</h3>
+    <p class="note">Choisis combien de molécules de chaque sorte tu prends. Observe les atomes de chaque côté et cherche l’égalité.</p>
+    <div class="card" id="comb" style="margin-top:10px"></div>
+    <div class="tnote"><b>Notes prof</b>Rappel 5 min, démontage guidé 15, reconstruction libre 20, mise en commun 10, ticket de sortie 5. Les élèves trouvent presque tous d’abord 1 + 1 → 1 + 1 : laisse-les compter avant de les aider. Ils découvrent qu’il faut 2 O₂ et qu’on obtient 2 H₂O. Les multiples 2, 4, 2, 4 sont aussi justes mais non simplifiés. Les gaz brûlés produisent aussi de la chaleur : à évoquer sans l’approfondir.</div>
+  </section>
+
+  <!-- CRENEAU 4 -->
+  <section class="slot" id="creneau-4">
+    <div class="kicker"><span>Créneau 4</span><span class="fmt">Cours · classe ou demi-groupe avec ordinateurs</span></div>
+    <h2>Écrire et ajuster l’équation</h2>
+    <ul class="goals"><li>J’écris l’équation en mots puis avec les formules</li><li>J’ajuste avec des coefficients</li><li>Je ne modifie jamais un indice</li></ul>
+
+    <h3>Quatre écritures de la même transformation</h3>
+    <div class="card" style="margin-top:10px"><div class="tabs" id="ladderTabs" role="tablist" aria-label="Écritures de la combustion du méthane"></div><div id="ladder" style="margin-top:14px"></div></div>
+
+    <h3>Le coefficient change le nombre, l’indice change la substance</h3>
+    <div class="cmp" id="idx2"></div>
+
+    <h3>À toi d’ajuster</h3>
+    <p class="note">Choisis les coefficients devant chaque formule. Le compteur te montre les atomes à gauche et à droite. Commence par l’élément qui n’apparaît que dans une seule formule de chaque côté.</p>
+    <div class="card" id="eqlab" style="margin-top:10px"></div>
+    <div class="tnote"><b>Notes prof</b>Rappel 5 min, échelle des quatre écritures 10, coefficient et indice 10, équilibrage guidé 20, ticket de sortie 10. Méthode à afficher : C d’abord, H ensuite, O en dernier (il apparaît dans plusieurs formules). Pièges : changer un indice pour « équilibrer » ; oublier de multiplier l’indice par le coefficient (2 H₂O contient 4 H et 2 O) ; écrire un coefficient 1. L’équation du propane est un défi pour les plus rapides.</div>
+  </section>
+
+  <!-- CRENEAU 5 -->
+  <section class="slot" id="creneau-5">
+    <div class="kicker"><span>Créneau 5</span><span class="fmt">Bilan · classe entière</span></div>
+    <h2>Bilan : exercices et quiz</h2>
+    <ul class="goals"><li>Je vérifie ce que je sais</li><li>Je repère ce que je dois revoir</li></ul>
+    <h3>Quiz · six questions</h3>
+    <div class="grid g2" id="quiz" style="margin-top:10px"></div>
+    <div class="ready" id="quizscore" aria-live="polite"></div>
+    <h3>Ticket de sortie</h3>
+    <div class="qa"><div><b class="mono" style="color:var(--accent)">En une phrase</b><p style="margin-top:4px">Pourquoi la masse se conserve-t-elle pendant une transformation chimique ?</p></div><button class="btn alt" id="exitBtn" style="align-self:start">Voir une réponse possible</button><div class="a" id="exitAns"><p>Parce que les atomes se conservent : ils se réarrangent en de nouvelles molécules, mais aucun n’apparaît et aucun ne disparaît.</p></div></div>
+    <div class="tnote"><b>Notes prof</b>Quiz 20 min en autonomie ou en binômes, correction 15, exercices d’application 15 (équations à ajuster du créneau 4). Les erreurs reviennent souvent sur la question 4 (indice multiplié par le coefficient) et la question 5 (modifier un indice).</div>
+  </section>
+
+  <footer>Transformations chimiques · 4ème · EFI Casablanca. Les valeurs de masse du simulateur sont idéalisées.</footer>
+  </div>
+  </main>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const el=(html)=>{const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fmt=(x,d=2)=>x.toFixed(d).replace('.',',');
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+/* ---------- rail, thème, notes prof ---------- */
+(function(){
+  const links=$$('.rail a[data-s]');
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.toggle('on',l.dataset.s===e.target.id))}})},{rootMargin:'-30% 0px -60% 0px'});
+  $$('section.slot').forEach(s=>io.observe(s));
+  const pb=$('#profBtn');
+  const setProf=on=>{document.body.classList.toggle('prof',on);pb.setAttribute('aria-pressed',on);store.set('prof4',on?'1':'0')};
+  pb.onclick=()=>setProf(!document.body.classList.contains('prof'));
+  if(store.get('prof4')==='1')setProf(true);
+  $('#themeBtn').onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark'};
+})();
+
+/* ---------- données ---------- */
+const AT={H:{n:'Hydrogène',c:'#ffffff',t:'#13232b',w:'blanc'},C:{n:'Carbone',c:'#2b2b2b',t:'#ffffff',w:'noir'},O:{n:'Oxygène',c:'#d8352a',t:'#ffffff',w:'rouge'},N:{n:'Azote',c:'#2f6fd6',t:'#ffffff',w:'bleu'}};
+const SUB='₀₁₂₃₄₅₆₇₈₉';
+const ORDER=['C','H','O','N'];
+const atom=(s,n=1)=>Array(Math.max(0,n)).fill(`<span class="at" style="background:${AT[s].c};color:${AT[s].t}" title="${AT[s].n}">${s}</span>`).join('');
+const atomsOf=a=>ORDER.filter(s=>a[s]).map(s=>atom(s,a[s])).join('');
+const tot=a=>Object.values(a).reduce((x,y)=>x+y,0);
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const MOL=[
+  {n:'Eau',f:'H₂O',a:{H:2,O:1}},
+  {n:'Dioxygène',f:'O₂',a:{O:2}},
+  {n:'Dihydrogène',f:'H₂',a:{H:2}},
+  {n:'Dioxyde de carbone',f:'CO₂',a:{C:1,O:2}},
+  {n:'Méthane',f:'CH₄',a:{C:1,H:4}},
+  {n:'Ammoniac',f:'NH₃',a:{N:1,H:3}}];
+
+/* ---------- sécurité ---------- */
+(function(){
+  const R=[['Lunettes','Sur le nez dès l’entrée en salle, jusqu’au rangement.'],['Blouse','Boutonnée, cheveux attachés, sac loin de la paillasse.'],['On ne goûte rien','Ni produit, ni solution, même si le vinaigre vient de la cuisine.'],['Je signale','Projection ou casse : je préviens tout de suite le professeur.']];
+  const box=$('#rules'),rd=$('#ready');
+  R.forEach(([t,d])=>{const b=el(`<button class="rule" aria-pressed="false"><h4>${t}<span class="tick" aria-hidden="true"></span></h4><p>${d}</p></button>`);
+    b.onclick=()=>{b.classList.toggle('on');const on=b.classList.contains('on');b.setAttribute('aria-pressed',on);b.querySelector('.tick').textContent=on?'✓':'';
+      const n=$$('.rule.on',box).length;rd.className='ready'+(n===R.length?' go':'');rd.textContent=n===R.length?'Quatre règles lues : tu es prêt pour la salle de TP.':(n?n+' règle'+(n>1?'s':'')+' sur '+R.length:'')};
+    box.appendChild(b)});
+})();
+
+/* ---------- créneau 1 : balance ---------- */
+(function(){
+  const M0=148.20,LOSS=0.26;
+  let closed=true,done=false;
+  const bal=$('#balG'),gas=$('#gas'),pow=$('#pow'),bubs=$('#bubs'),after=$('#mAfter'),fb=$('#simfb'),mix=$('#mix');
+  function reset(){
+    done=false;pow.style.transition='none';pow.style.opacity=1;bubs.innerHTML='';
+    bal.style.transition='none';bal.style.transform='scale(.12)';bal.style.opacity=closed?1:0;
+    gas.classList.remove('on');
+    setTimeout(()=>{bal.style.transition='';pow.style.transition=''},30);
+    after.textContent='—';mix.disabled=false;
+    fb.className='fb';
+    fb.textContent=closed?'Le ballon ferme le récipient : rien ne peut sortir. Prévois ce que la balance va indiquer, puis mélange.':'Le récipient est ouvert : l’air circule librement. Prévois ce que la balance va indiquer, puis mélange.';
+  }
+  function bubble(){
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',58+Math.random()*44);c.setAttribute('cy',150+Math.random()*24);c.setAttribute('r',2+Math.random()*3);
+    c.setAttribute('fill','rgba(255,255,255,.35)');c.setAttribute('stroke','#ffffff');c.setAttribute('stroke-width','1.5');c.setAttribute('class','bb');
+    bubs.appendChild(c);setTimeout(()=>c.remove(),1800);
+  }
+  mix.onclick=()=>{
+    if(done)return;done=true;mix.disabled=true;
+    if(!reduce)for(let i=0;i<20;i++)setTimeout(bubble,i*110);
+    pow.style.transition='opacity 2s';pow.style.opacity=0;
+    if(closed)bal.style.transform='scale(1)';else gas.classList.add('on');
+    setTimeout(()=>{
+      after.textContent=fmt(closed?M0:M0-LOSS)+' g';
+      fb.className='fb ok';
+      fb.textContent=closed
+        ?'La masse n’a pas changé : 148,20 g avant et après. Le gaz formé est resté dans le ballon, rien n’a quitté le système.'
+        :'La balance indique 0,26 g de moins. Le dioxyde de carbone s’est échappé dans l’air : la matière n’a pas disparu, elle est partie sous forme de gaz.';
+    },reduce?0:2200);
+  };
+  $('#again').onclick=reset;
+  $$('#simMode button').forEach(b=>b.onclick=()=>{closed=b.dataset.m==='closed';$$('#simMode button').forEach(x=>x.setAttribute('aria-selected',x===b));reset()});
+  reset();
+})();
+
+/* ---------- créneau 1 : réactif ou produit ---------- */
+(function(){
+  const R=[['Bicarbonate de sodium','réactif','Il réagit avec le vinaigre : il disparaît peu à peu.'],['Vinaigre','réactif','Il réagit avec le bicarbonate : il est consommé.'],['Dioxyde de carbone (le gaz)','produit','Il apparaît pendant la transformation : ce sont les bulles.']];
+  const box=$('#cls');
+  R.forEach(([n,ans,why])=>{
+    const c=el(`<div class="card"><h4>${n}</h4><div class="row" style="margin-top:10px"><button class="btn alt" data-a="réactif">réactif</button><button class="btn alt" data-a="produit">produit</button></div><p class="res" style="margin-top:8px;min-height:22px" aria-live="polite"></p></div>`);
+    $$('button',c).forEach(b=>b.onclick=()=>{const ok=b.dataset.a===ans;const r=$('.res',c);r.className='res '+(ok?'ok':'ko');r.textContent=ok?'✓ '+why:'✗ Réfléchis : disparaît-il ou apparaît-il ?'});
+    box.appendChild(c);
+  });
+})();
+
+/* ---------- créneau 2 : palette, tableau, constructeur ---------- */
+(function(){
+  const P=[['H','Le plus léger de tous les atomes.'],['C','Dans le charbon, le graphite, le sucre.'],['O','Environ un cinquième de l’air.'],['N','Environ quatre cinquièmes de l’air.']];
+  P.forEach(([s,d])=>$('#palette').appendChild(el(`<div class="card" style="display:flex;gap:14px;align-items:center"><span class="at" style="width:46px;height:46px;font-size:20px;background:${AT[s].c};color:${AT[s].t}">${s}</span><div><h4>${AT[s].n}</h4><p class="note">Boule ${AT[s].w} · ${d}</p></div></div>`)));
+  $('#moltab').innerHTML=MOL.map(m=>`<tr><td>${m.n}</td><td class="ion">${m.f}</td><td><div class="atoms">${atomsOf(m.a)}</div></td><td>${tot(m.a)} atome${tot(m.a)>1?'s':''}</td></tr>`).join('');
+
+  const box=$('#builder');let cur=MOL[0],list=[];
+  box.innerHTML=`<div class="tabs" id="bTargets" role="tablist" aria-label="Molécule à construire">${MOL.map((m,i)=>`<button role="tab" aria-selected="${i===0}" data-i="${i}">${m.f}</button>`).join('')}</div>
+  <p style="margin-top:12px"><b id="bName"></b> · formule <span class="ion" id="bF"></span></p>
+  <div class="row" style="margin-top:10px">${['H','C','O','N'].map(s=>`<button class="btn alt addat" data-s="${s}" aria-label="Ajouter un atome de ${AT[s].n}">${atom(s)}<span>+1</span></button>`).join('')}<button class="btn alt" id="bClear">Vider</button></div>
+  <div class="plate" id="bPlate" aria-live="polite"></div>
+  <div class="fb" id="bFb" aria-live="polite"></div>`;
+  const plate=$('#bPlate'),fb=$('#bFb');
+  function draw(){
+    $('#bName').textContent=cur.n;$('#bF').textContent=cur.f;
+    plate.innerHTML='';
+    list.forEach((s,i)=>{const b=el(`<button aria-label="Retirer cet atome de ${AT[s].n}">${atom(s)}</button>`);b.onclick=()=>{list.splice(i,1);draw()};plate.appendChild(b)});
+    const have={};list.forEach(s=>have[s]=(have[s]||0)+1);
+    const miss=[],extra=[];
+    ORDER.forEach(s=>{const d=(cur.a[s]||0)-(have[s]||0);if(d>0)miss.push(`${d} atome${d>1?'s':''} ${s}`);if(d<0)extra.push(`${-d} atome${-d>1?'s':''} ${s}`)});
+    if(!list.length){fb.className='fb';fb.textContent=`Construis la molécule ${cur.f} : il te faut ${ORDER.filter(s=>cur.a[s]).map(s=>cur.a[s]+' '+s).join(' et ')}.`;return}
+    if(!miss.length&&!extra.length){fb.className='fb ok';fb.textContent=`Bravo : ${cur.f} contient ${ORDER.filter(s=>cur.a[s]).map(s=>cur.a[s]+' atome'+(cur.a[s]>1?'s':'')+' '+s).join(' et ')}, soit ${tot(cur.a)} atome${tot(cur.a)>1?'s':''} au total.`;return}
+    fb.className='fb ko';
+    fb.textContent=(miss.length?'Il te manque '+miss.join(' et ')+'. ':'')+(extra.length?'Tu as '+extra.join(' et ')+' en trop.':'');
+  }
+  $$('.addat',box).forEach(b=>b.onclick=()=>{if(list.length<12){list.push(b.dataset.s);draw()}});
+  $('#bClear').onclick=()=>{list=[];draw()};
+  $$('#bTargets button').forEach(b=>b.onclick=()=>{cur=MOL[+b.dataset.i];list=[];$$('#bTargets button').forEach(x=>x.setAttribute('aria-selected',x===b));draw()});
+  draw();
+
+  // indice / coefficient
+  const card=(t,sub,a,txt)=>`<div class="card"><h4 class="ion">${t}</h4><p class="note" style="margin:4px 0 8px">${sub}</p><div class="atoms">${atomsOf(a)}</div><p style="margin-top:8px">${txt}</p></div>`;
+  $('#idx').innerHTML=card('H₂O','1 molécule d’eau',{H:2,O:1},'3 atomes : 2 H et 1 O.')+card('2 H₂O','2 molécules d’eau',{H:4,O:2},'6 atomes : 4 H et 2 O. Le coefficient 2 multiplie tout.')+card('H₂O₂','1 molécule d’eau oxygénée',{H:2,O:2},'4 atomes : 2 H et 2 O. Autre indice, autre substance : ce n’est plus de l’eau.');
+  const Q=[['Combien d’atomes dans une molécule de CH₄ ?','5 atomes : 1 C et 4 H.'],['Le dioxygène O₂ est-il un atome ou une molécule ?','Une molécule, faite de 2 atomes O.'],['H₂ et 2 H : est-ce la même chose ?','Non. H₂ est une molécule de 2 atomes liés, 2 H sont deux atomes séparés.']];
+  Q.forEach(([q,a])=>{const c=el(`<div class="qa"><p>${q}</p><button class="btn alt" style="align-self:start">Voir la réponse</button><div class="a"><p>${a}</p></div></div>`);$('button',c).onclick=()=>c.classList.add('open');$('#q2').appendChild(c)});
+})();
+
+/* ---------- créneau 3 : simulateur de combustion ---------- */
+(function(){
+  const S=[{f:'CH₄',a:{C:1,H:4},side:0},{f:'O₂',a:{O:2},side:0},{f:'CO₂',a:{C:1,O:2},side:1},{f:'H₂O',a:{H:2,O:1},side:1}];
+  const n=[1,1,1,1];
+  const box=$('#comb');
+  const step=i=>`<span class="stepper"><button data-i="${i}" data-d="-1" aria-label="Une molécule de ${S[i].f} en moins">−</button><output id="n${i}" aria-live="polite">1</output><button data-i="${i}" data-d="1" aria-label="Une molécule de ${S[i].f} en plus">+</button></span> <span class="ion">${S[i].f}</span>`;
+  box.innerHTML=`<div class="eqrow"><span class="sp">${step(0)}</span><span>+</span><span class="sp">${step(1)}</span><span>→</span><span class="sp">${step(2)}</span><span>+</span><span class="sp">${step(3)}</span></div>
+  <div class="grid g2" style="margin-top:16px"><div><h4 style="font-size:15px;color:var(--muted);margin-bottom:6px">Atomes avant</h4><div class="atoms" id="cL"></div></div><div><h4 style="font-size:15px;color:var(--muted);margin-bottom:6px">Atomes après</h4><div class="atoms" id="cR"></div></div></div>
+  <div class="tally" id="cT"></div><div class="fb" id="cFb" aria-live="polite"></div>`;
+  function calc(){
+    const L={},R={};
+    S.forEach((s,i)=>Object.entries(s.a).forEach(([e,k])=>{(s.side?R:L)[e]=((s.side?R:L)[e]||0)+k*n[i]}));
+    const els=['C','H','O'];
+    $('#cL').innerHTML=els.map(e=>atom(e,L[e]||0)).join('')||'';
+    $('#cR').innerHTML=els.map(e=>atom(e,R[e]||0)).join('')||'';
+    let bal=true;
+    $('#cT').innerHTML=els.map(e=>{const l=L[e]||0,r=R[e]||0,ok=l===r;if(!ok)bal=false;return `<div class="${ok?'ok':'ko'}">${e} : ${l} → ${r} ${ok?'✓':'✗'}</div>`}).join('');
+    const all=n.every(x=>x>0);
+    const f=$('#cFb');
+    if(!all){f.className='fb';f.textContent='Prends au moins une molécule de chaque sorte.';return}
+    if(bal){const g=n.reduce(gcd);f.className='fb ok';
+      f.textContent=g>1?`Les atomes se conservent, mais tu peux simplifier : divise tous les nombres par ${g}.`:`Ajusté : ${n[0]>1?n[0]+' ':''}CH₄ + ${n[1]>1?n[1]+' ':''}O₂ → ${n[2]>1?n[2]+' ':''}CO₂ + ${n[3]>1?n[3]+' ':''}H₂O. Les atomes se conservent, donc la masse aussi.`}
+    else{const bad=els.filter(e=>(L[e]||0)!==(R[e]||0)).map(e=>`${L[e]||0} ${e} avant et ${R[e]||0} après`);f.className='fb ko';f.textContent='Pas encore : '+bad.join(' ; ')+'. Change le nombre de molécules.'}
+  }
+  $$('.stepper button',box).forEach(b=>b.onclick=()=>{const i=+b.dataset.i;n[i]=Math.min(6,Math.max(0,n[i]+ +b.dataset.d));$('#n'+i).textContent=n[i];calc()});
+  calc();
+})();
+
+/* ---------- créneau 4 : échelle des écritures, équilibrage ---------- */
+(function(){
+  const mol=(f,a)=>`<span class="mol" title="${f}">${atomsOf(a)}</span>`;
+  const CH4={C:1,H:4},O2={O:2},CO2={C:1,O:2},H2O={H:2,O:1};
+  const L=[
+    ['1 · En mots',`<p class="bigeq" style="font-family:var(--f-body)">méthane + dioxygène → dioxyde de carbone + eau</p><p class="note" style="margin-top:8px">C’est ce que tu observes : ce qui disparaît (réactifs) → ce qui apparaît (produits).</p>`],
+    ['2 · Avec les modèles',`<div class="bigeq">${mol('CH₄',CH4)}<span>+</span>${mol('O₂',O2)}${mol('O₂',O2)}<span>→</span>${mol('CO₂',CO2)}<span>+</span>${mol('H₂O',H2O)}${mol('H₂O',H2O)}</div><p class="note" style="margin-top:8px">C’est ce que tu as construit avec le kit : 1 CH₄ et 2 O₂ donnent 1 CO₂ et 2 H₂O.</p>`],
+    ['3 · Avec les formules',`<p class="bigeq"><span>CH₄ + O₂ → CO₂ + H₂O</span></p><p class="note" style="margin-top:8px">Première écriture, pas encore ajustée : 4 H à gauche, 2 H à droite, 2 O à gauche, 3 O à droite. Les atomes ne se conservent pas, il faut ajuster.</p>`],
+    ['4 · Ajustée',`<p class="bigeq"><span>CH₄ + 2 O₂ → CO₂ + 2 H₂O</span></p><p class="note" style="margin-top:8px">Les coefficients 2 rétablissent l’égalité : 1 C, 4 H et 4 O de chaque côté. C’est l’équation de la réaction.</p>`]];
+  const tabs=$('#ladderTabs'),lad=$('#ladder');
+  L.forEach(([t,h],i)=>{const b=el(`<button role="tab" aria-selected="${i===0}">${t}</button>`);b.onclick=()=>{$$('button',tabs).forEach(x=>x.setAttribute('aria-selected',x===b));lad.innerHTML=h};tabs.appendChild(b)});
+  lad.innerHTML=L[0][1];
+
+  const card=(t,sub,a,txt)=>`<div class="card"><h4 class="ion">${t}</h4><p class="note" style="margin:4px 0 8px">${sub}</p><div class="atoms">${atomsOf(a)}</div><p style="margin-top:8px">${txt}</p></div>`;
+  $('#idx2').innerHTML=card('2 H₂O','coefficient 2 : 2 molécules',{H:4,O:2},'Le nombre de molécules change, la substance reste de l’eau.')+card('H₂O₂','indice 2 sur O : autre molécule',{H:2,O:2},'La substance change : ce n’est plus de l’eau. On ne fait jamais cela pour ajuster.');
+
+  const EQ=[
+    {s:'1',t:'Dihydrogène + dioxygène → eau',R:[['H₂',{H:2}],['O₂',{O:2}]],P:[['H₂O',{H:2,O:1}]],sol:[2,1,2]},
+    {s:'2',t:'Combustion du méthane',R:[['CH₄',{C:1,H:4}],['O₂',{O:2}]],P:[['CO₂',{C:1,O:2}],['H₂O',{H:2,O:1}]],sol:[1,2,1,2]},
+    {s:'3',t:'Combustion du carbone',R:[['C',{C:1}],['O₂',{O:2}]],P:[['CO₂',{C:1,O:2}]],sol:[1,1,1]},
+    {s:'4',t:'Synthèse de l’ammoniac',R:[['N₂',{N:2}],['H₂',{H:2}]],P:[['NH₃',{N:1,H:3}]],sol:[1,3,2]},
+    {s:'Défi',t:'Défi : combustion du propane',R:[['C₃H₈',{C:3,H:8}],['O₂',{O:2}]],P:[['CO₂',{C:1,O:2}],['H₂O',{H:2,O:1}]],sol:[1,5,3,4]}];
+  const box=$('#eqlab');let cur=0,co=[];
+  box.innerHTML=`<div class="tabs" id="eqTabs" role="tablist" aria-label="Équations à ajuster">${EQ.map((e,i)=>`<button role="tab" aria-selected="${i===0}" aria-label="${e.t}" data-i="${i}">${e.s}</button>`).join('')}</div>
+  <p class="note" id="eqTitle" style="margin-top:10px"></p><div class="eqrow" id="eqrow" style="margin-top:12px"></div><div class="tally" id="eqt"></div><div class="fb" id="eqfb" aria-live="polite"></div>`;
+  const eqs=(e,c)=>{const t=(sp,off)=>sp.map(([f],i)=>(c[off+i]>1?c[off+i]+' ':'')+f).join(' + ');return t(e.R,0)+' → '+t(e.P,e.R.length)};
+  function build(){
+    const e=EQ[cur];co=Array(e.R.length+e.P.length).fill(1);
+    $('#eqTitle').textContent=e.t;
+    const sp=(f,i)=>`<span class="sp"><select class="sel" data-i="${i}" aria-label="Coefficient devant ${f}">${[1,2,3,4,5,6].map(k=>`<option>${k}</option>`).join('')}</select>${f}</span>`;
+    let h='';
+    e.R.forEach(([f],i)=>{h+=(i?'<span>+</span>':'')+sp(f,i)});
+    h+='<span>→</span>';
+    e.P.forEach(([f],i)=>{h+=(i?'<span>+</span>':'')+sp(f,e.R.length+i)});
+    $('#eqrow').innerHTML=h;
+    $$('#eqrow select').forEach(s=>s.onchange=()=>{co[+s.dataset.i]=+s.value;check()});
+    check();
+  }
+  function check(){
+    const e=EQ[cur],Lf={},Rt={};
+    e.R.forEach(([f,a],i)=>Object.entries(a).forEach(([k,v])=>Lf[k]=(Lf[k]||0)+v*co[i]));
+    e.P.forEach(([f,a],i)=>Object.entries(a).forEach(([k,v])=>Rt[k]=(Rt[k]||0)+v*co[e.R.length+i]));
+    const els=ORDER.filter(k=>Lf[k]||Rt[k]);let ok=true;
+    $('#eqt').innerHTML=els.map(k=>{const g=(Lf[k]||0)===(Rt[k]||0);if(!g)ok=false;return `<div class="${g?'ok':'ko'}">${k} : ${Lf[k]||0} → ${Rt[k]||0} ${g?'✓':'✗'}</div>`}).join('');
+    const fb=$('#eqfb');
+    if(ok){const g=co.reduce(gcd);fb.className='fb ok';
+      fb.textContent=g>1?`Les atomes se conservent, mais tu peux simplifier : divise tous les coefficients par ${g}.`:`Équation ajustée : ${eqs(e,co)}. Les atomes se conservent.`}
+    else{const bad=els.filter(k=>(Lf[k]||0)!==(Rt[k]||0));fb.className='fb ko';fb.textContent=`Pas encore : regarde ${bad.length>1?'les éléments ':'l’élément '}${bad.join(', ')}. Change un coefficient, jamais un indice.`}
+  }
+  $$('#eqTabs button').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;$$('#eqTabs button').forEach(x=>x.setAttribute('aria-selected',x===b));build()});
+  build();
+})();
+
+/* ---------- créneau 5 : quiz ---------- */
+(function(){
+  const Q=[
+    ['Dans un récipient fermé, on mélange du bicarbonate et du vinaigre. La masse totale…',['augmente','diminue','ne change pas'],2,'Rien ne peut sortir du récipient fermé : la masse se conserve.'],
+    ['Combien d’atomes contient une molécule de CO₂ ?',['1','2','3','4'],2,'1 atome C et 2 atomes O : 3 atomes.'],
+    ['Dans la formule H₂O, que signifie le 2 ?',['2 molécules d’eau','2 atomes d’hydrogène','2 atomes d’oxygène'],1,'L’indice compte l’atome qui le précède : 2 atomes H.'],
+    ['Combien d’atomes d’hydrogène contiennent 2 H₂O ?',['2','3','4','6'],2,'2 molécules × 2 atomes H = 4 atomes H.'],
+    ['Pour ajuster une équation, je modifie…',['les indices','les coefficients','les formules des substances'],1,'Changer un indice change la substance : H₂O₂ n’est plus de l’eau. On ne touche qu’aux coefficients.'],
+    ['Lors d’une transformation chimique, les atomes…',['disparaissent','se conservent et se réarrangent','se transforment en d’autres atomes'],1,'Ce sont les mêmes atomes, réarrangés : c’est pour cela que la masse se conserve.']];
+  const box=$('#quiz'),sc=$('#quizscore');let right=0,seen=0;
+  Q.forEach(([q,ch,a,e],i)=>{
+    const c=el(`<div class="qa"><div><b class="mono" style="color:var(--accent)">Question ${i+1}</b><p style="margin-top:4px">${q}</p></div><div>${ch.map((t,j)=>`<button class="choice" data-j="${j}">${t}</button>`).join('')}</div><div class="a"><p>${e}</p></div></div>`);
+    $$('.choice',c).forEach(b=>b.onclick=()=>{
+      if(c.dataset.done)return;c.dataset.done=1;seen++;
+      const j=+b.dataset.j;if(j===a)right++;
+      $$('.choice',c).forEach(x=>{x.disabled=true;if(+x.dataset.j===a)x.classList.add('ok')});
+      if(j!==a)b.classList.add('ko');
+      c.classList.add('open');
+      if(seen===Q.length){sc.className='ready go';sc.textContent=right+' sur '+Q.length+'.'+(right===Q.length?' Séquence maîtrisée.':' Reprends les créneaux où tu as hésité.')}
+    });
+    box.appendChild(c);
+  });
+  $('#exitBtn').onclick=()=>$('#exitAns').parentElement.classList.add('open');
+})();
+</script>
+</body>
+</html>
