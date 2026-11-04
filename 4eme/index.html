@@ -275,6 +275,17 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
 .mg-none{font:500 20px var(--f-mono);color:var(--muted);padding:6px 10px}
 .mop{font:500 24px var(--f-mono);color:var(--muted)}
 .mshape{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px}
+#bubG{transition:transform 1.3s ease-in-out,opacity .2s}
+#dem.run #bubG{transform:translateY(-62px)}
+#dem.fire #bubG,#dem.out #bubG{opacity:0}
+#fireG{opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(.2);transition:transform .45s ease-out,opacity .3s}
+#dem.fire #fireG{opacity:1;transform:scale(1.1)}
+#dem.out #fireG{opacity:0;transform:scale(1.5);transition:transform .9s ease-out,opacity .9s}
+#stickG{transition:transform 1.3s ease-in-out}
+#dem.run #stickG{transform:translate(-36px,2px)}
+#dem.out #stickG{transform:translate(0,0);transition-duration:.9s}
+#prodT{opacity:0;transition:opacity .9s}
+#dem.out #prodT{opacity:1}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--muted);margin:8px 0 12px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 </style>
@@ -284,7 +295,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
   <nav class="rail" aria-label="Les cinq créneaux">
     <a class="back" href="../">← Accueil</a>
     <div class="brand">Transformations<br>chimiques<small>Physique-chimie · 4ème</small></div>
-    <a href="#creneau-1" data-s="creneau-1"><b>1</b><span>TP · Que se passe-t-il quand ça change ?</span></a>
+    <a href="#creneau-1" data-s="creneau-1"><b>1</b><span>Démo · Quand le méthane brûle</span></a>
     <a href="#creneau-2" data-s="creneau-2"><b>2</b><span>Kits · Atomes, molécules, formules</span></a>
     <a href="#creneau-3" data-s="creneau-3"><b>3</b><span>Kits · La combustion du méthane</span></a>
     <a href="#creneau-4" data-s="creneau-4"><b>4</b><span>Cours · Écrire et ajuster l’équation</span></a>
@@ -301,7 +312,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
   <header class="hero" id="intro">
     <div class="kicker">Physique-chimie · 4ème · EFI Casablanca</div>
     <h1>Transformations chimiques</h1>
-    <p class="sub">Observer ce qui change quand on mélange deux produits, puis l’expliquer avec des atomes et des molécules, jusqu’à l’équation ajustée. Cinq créneaux.</p>
+    <p class="sub">Observer une bulle de méthane qui brûle, comprendre ce que devient la matière, puis l’expliquer avec des atomes et des molécules, jusqu’à l’équation ajustée. Cinq créneaux.</p>
     <div class="floaters" aria-hidden="true">
       <span style="left:2%;top:10px;color:var(--oh-ion);animation-delay:-1s">H₂O</span>
       <span style="left:24%;top:60px;color:var(--h-ion);animation-delay:-3s">CH₄</span>
@@ -309,7 +320,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
       <span style="left:64%;top:64px;color:var(--accent);animation-delay:-4s">O₂</span>
     </div>
     <div class="steps3">
-      <a href="#creneau-1"><b>Observer</b><span>Créneau 1 · bicarbonate et vinaigre</span></a>
+      <a href="#creneau-1"><b>Observer</b><span>Créneau 1 · bulle de méthane et balance</span></a>
       <a href="#creneau-2"><b>Modéliser</b><span>Créneaux 2 et 3 · atomes, molécules, combustion</span></a>
       <a href="#creneau-4"><b>Écrire</b><span>Créneaux 4 et 5 · équation ajustée, bilan</span></a>
     </div>
@@ -317,16 +328,17 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
     <p class="note">Clique sur chaque règle quand tu l’as lue. Les quatre cochées, tu es prêt pour la salle de TP.</p>
     <div class="rules" id="rules"></div>
     <div class="ready" id="ready" aria-live="polite"></div>
-    <div class="tnote"><b>Notes prof</b>Fil rouge : la matière ne disparaît pas, les atomes se réarrangent. Les créneaux 1 à 3 se font en demi-groupe avec les kits, le 4 en classe ou en demi-groupe avec ordinateurs, le 5 en classe entière. Selon l’emploi du temps de chaque classe, le créneau 2 (construire les molécules) peut précéder ou suivre un moment de cours : le contenu reste le même.</div>
+    <div class="tnote"><b>Notes prof</b>Fil rouge : la matière ne disparaît pas, les atomes se réarrangent. Le créneau 1 commence par ta démonstration du méthane. Les créneaux 1 à 3 se font en demi-groupe (kits pour les 2 et 3), le 4 en classe ou en demi-groupe avec ordinateurs, le 5 en classe entière. Selon l’emploi du temps de chaque classe, le créneau 2 (construire les molécules) peut précéder ou suivre un moment de cours : le contenu reste le même.</div>
   </header>
 
   <!-- CRENEAU 1 -->
   <section class="slot" id="creneau-1">
-    <div class="kicker"><span>Créneau 1</span><span class="fmt">TP · demi-groupe</span></div>
-    <h2>Que se passe-t-il quand ça change ?</h2>
-    <ul class="goals"><li>Je repère les signes d’une transformation chimique</li><li>Je distingue réactifs et produits</li><li>Je compare la masse avant et après</li></ul>
+    <div class="kicker"><span>Créneau 1</span><span class="fmt">Démonstration + TP · demi-groupe</span></div>
+    <h2>Que devient la matière quand ça brûle ?</h2>
+    <ul class="goals"><li>Je décris ce que j’observe pendant une combustion</li><li>Je distingue réactifs et produits</li><li>Je découvre que la masse se conserve</li></ul>
 
-    <h3>Quatre indices qu’une transformation chimique a lieu</h3>
+    <h3>Rappel de 5ème : les indices d’une transformation chimique</h3>
+    <p class="note" style="margin-bottom:10px">Une transformation chimique fait disparaître des substances, les réactifs, et en fait apparaître d’autres, les produits. Quatre indices peuvent t’aider à la repérer.</p>
     <div class="grid g3">
       <div class="card"><h4>Un gaz apparaît</h4><p class="note" style="margin-top:6px">Des bulles se forment dans un liquide.</p></div>
       <div class="card"><h4>La couleur change</h4><p class="note" style="margin-top:6px">Un produit coloré apparaît, ou une couleur disparaît.</p></div>
@@ -335,8 +347,37 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
     </div>
     <p class="callout" style="margin-top:14px">Attention : un glaçon qui fond n’est pas une transformation chimique. L’eau reste de l’eau, seul son état change.</p>
 
-    <h3>L’expérience : bicarbonate de sodium et vinaigre</h3>
-    <p class="note" style="margin-bottom:10px">Prévois d’abord ce que la balance va indiquer, puis clique sur « Mélanger ». Essaie les deux types de récipient.</p>
+    <h3>La démonstration : une bulle de méthane qui brûle</h3>
+    <p class="note" style="margin-bottom:10px">Le professeur remplit une bulle de savon avec du méthane, puis approche une flamme. Toi, tu restes à distance et tu observes. Commence par prévoir.</p>
+    <div class="card sim" id="demo">
+      <svg id="dem" viewBox="0 0 220 232" role="img" aria-label="Une bulle de savon remplie de méthane s’élève, une flamme l’enflamme, la bulle disparaît">
+        <path d="M22 202 H198 L186 228 H34 Z" fill="var(--surface-2)" stroke="var(--glass)" stroke-width="2"/>
+        <ellipse cx="110" cy="202" rx="88" ry="8" fill="var(--accent-soft)" stroke="var(--glass)" stroke-width="1.5"/>
+        <g id="bubG"><circle cx="100" cy="150" r="30" fill="var(--accent-soft)" fill-opacity=".6" stroke="var(--accent)" stroke-width="2.5"/><text x="100" y="155" text-anchor="middle" fill="var(--fg)" style="font:700 14px var(--f-mono)">CH₄</text></g>
+        <g id="fireG"><circle cx="100" cy="88" r="56" fill="#e8571f" fill-opacity=".45"/><circle cx="100" cy="88" r="42" fill="#f6b73c" fill-opacity=".85"/><circle cx="100" cy="88" r="24" fill="#fff3b0"/></g>
+        <g id="stickG"><line x1="214" y1="48" x2="164" y2="86" stroke="#8a6a3b" stroke-width="5" stroke-linecap="round"/><path d="M164 90 q-9 -9 0 -20 q11 8 0 20z" fill="#f2a63a"/></g>
+        <text id="prodT" x="110" y="26" text-anchor="middle" fill="var(--muted)" style="font:600 13px var(--f-mono)">CO₂ + H₂O (gaz invisibles)</text>
+      </svg>
+      <div>
+        <p><b>1 · Je prévois.</b> Que va-t-il se passer quand la flamme touche la bulle ?</p>
+        <div id="pred"></div>
+        <p style="margin-top:14px"><b>2 · J’observe.</b></p>
+        <div class="row" style="margin-top:6px"><button class="btn" id="demoGo">Approcher la flamme</button><button class="btn alt" id="demoAgain">Rejouer</button></div>
+        <div class="fb" id="demofb" aria-live="polite">Fais ta prévision, puis regarde la démonstration (ou lance l’animation).</div>
+      </div>
+    </div>
+
+    <h3>Réactif ou produit ?</h3>
+    <p class="note">Un réactif disparaît pendant la transformation. Un produit apparaît. Classe chaque substance.</p>
+    <div class="grid g2" id="cls" style="margin-top:10px"></div>
+    <div class="grid g2" style="margin-top:14px">
+      <p class="callout">La bulle ne contient que du méthane. Pour brûler, il lui faut aussi du dioxygène, celui de l’air autour. Sans air, pas de flamme.</p>
+      <p class="callout">Les deux produits sont des gaz invisibles : on ne les voit pas dans la flamme. Au créneau 3, tu les retrouveras avec les kits.</p>
+    </div>
+
+    <h3>Où est passée la matière ?</h3>
+    <p class="lead">La bulle a disparu. A-t-on perdu de la matière ? On ne peut pas peser une flamme. On étudie donc une autre transformation que l’on peut peser : du bicarbonate de sodium dans du vinaigre.</p>
+    <p class="note" style="margin:10px 0">Prévois d’abord ce que la balance va indiquer, puis clique sur « Mélanger ». Essaie les deux types de récipient.</p>
     <div class="card sim">
       <svg id="flask" viewBox="0 -44 160 254" role="img" aria-label="Erlenmeyer contenant du vinaigre et du bicarbonate, posé sur une balance">
         <defs><clipPath id="flc"><path d="M62 34 V82 L26 164 Q22 184 40 184 H120 Q138 184 134 164 L98 82 V34 Z"/></clipPath></defs>
@@ -362,11 +403,9 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
     </div>
     <p class="note" style="margin-top:8px">Simulation : valeurs d’une expérience idéale avec environ 0,5 g de bicarbonate. Ta balance peut différer de quelques centigrammes.</p>
 
-    <h3>Réactif ou produit ?</h3>
-    <p class="note">Un réactif disparaît pendant la transformation. Un produit apparaît. Classe chaque substance.</p>
-    <div class="grid g3" id="cls" style="margin-top:10px"></div>
-    <p class="note" style="margin-top:8px">D’autres produits se forment aussi, dissous dans le liquide : on ne les voit pas.</p>
-    <div class="tnote"><b>Notes prof · chronologie</b>Accroche 5 min (glaçon, bougie, pain grillé : qui est chimique ?), protocole 5, manipulation 25, mise en commun 12, ticket de sortie 8. Matériel par groupe : Erlenmeyer ou petit flacon, bicarbonate (0,5 g), vinaigre blanc, balance au centigramme, ballon de baudruche. Sécurité : en système fermé, très petites quantités et jamais de verre bouché de façon étanche avec beaucoup de produit (surpression), à valider avec ton protocole habituel. Piège de mesure : un ballon gonflé subit la poussée de l’air et fait baisser la lecture de quelques dixièmes de gramme même en système fermé : prévois d’en discuter ou prends un flacon bouché avec très peu de bicarbonate.</div>
+    <div class="callout" style="margin-top:16px"><b>À retenir : la conservation de la masse.</b> Pendant une transformation chimique, la masse totale ne change pas. Quand elle semble diminuer, c’est qu’un gaz s’est échappé.<br><span class="note">Pense à un sac de courses que tu vides sur la table avant de le remplir autrement : le total pesé est le même, sauf si une pomme roule par terre. La pomme, c’est le gaz qui s’échappe.</span></div>
+
+    <div class="tnote"><b>Notes prof · chronologie</b>Rappel 5ème 5 min (glaçon, bougie, pain grillé : qui est chimique ?), prévisions 5, démonstration 8, observations et réactifs/produits 10, question « où est passée la matière ? » puis balance 20, bilan 7. La conservation de la masse n’a pas encore été vue : elle est introduite ici. Démonstration réservée au professeur : lunettes pour tous, élèves à au moins 2 m derrière une paillasse ou un écran, cheveux attachés, aucun autre produit inflammable à proximité, bulles formées sur le bac (jamais sur les mains) en petite quantité, robinet de gaz fermé avant d’allumer, flamme au bout d’une longue pique ou d’un long briquet, local aéré. À valider avec ton protocole habituel. Vérifie aussi la nature du gaz de ta paillasse : butane ou propane donneraient aussi CO₂ et H₂O mais l’équation change, et ces gaz sont plus denses que l’air (la bulle ne s’élèverait pas comme avec le méthane). Matériel pour la balance, par groupe : Erlenmeyer ou petit flacon, bicarbonate (0,5 g), vinaigre blanc, balance au centigramme, ballon de baudruche. En système fermé : très petites quantités et jamais de verre bouché de façon étanche avec beaucoup de produit (surpression). Piège de mesure : un ballon gonflé subit la poussée de l’air et fait baisser la lecture de quelques dixièmes de gramme même en système fermé : prévois d’en discuter ou prends un flacon bouché avec très peu de bicarbonate.</div>
   </section>
 
   <!-- CRENEAU 2 -->
@@ -403,7 +442,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
     <div class="kicker"><span>Créneau 3</span><span class="fmt">TP avec kits · demi-groupe</span></div>
     <h2>La combustion du méthane : tout se conserve</h2>
     <ul class="goals"><li>Je démonte les réactifs et je reconstruis les produits</li><li>Je compte les atomes de chaque côté</li><li>J’ajuste le nombre de molécules</li></ul>
-    <p class="lead" style="margin-top:14px">Le méthane, le gaz de ville, brûle dans le dioxygène de l’air. Il se forme du dioxyde de carbone et de l’eau. Que deviennent les atomes ?</p>
+    <p class="lead" style="margin-top:14px">Au créneau 1, tu as vu brûler une bulle de méthane dans l’air. Il se forme du dioxyde de carbone et de l’eau. Que deviennent les atomes ?</p>
 
     <div class="grid g2" style="margin-top:18px">
       <div class="card steps"><h4>Au kit, en quatre temps</h4>
@@ -413,7 +452,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
           <li>Reconstruis du dioxyde de carbone CO₂ et de l’eau H₂O avec ces atomes.</li>
           <li>Que reste-t-il ? Il manque des atomes O : ajoute des molécules de O₂ et recommence.</li>
         </ol></div>
-      <div class="card"><h4>L’idée à retenir</h4><p style="margin-top:8px">Les atomes ne disparaissent pas et n’apparaissent pas : ils changent de partenaires. Il y a donc autant d’atomes de chaque sorte avant et après.</p><p class="note" style="margin-top:8px">C’est pour cela que la masse se conserve, comme au créneau 1.</p></div>
+      <div class="card"><h4>L’idée à retenir</h4><p style="margin-top:8px">Les atomes ne disparaissent pas et n’apparaissent pas : ils changent de partenaires. Il y a donc autant d’atomes de chaque sorte avant et après.</p><p class="note" style="margin-top:8px">C’est pour cela que la masse se conserve, comme la balance l’a montré au créneau 1.</p></div>
     </div>
 
     <h3>Le simulateur de combustion</h3>
@@ -573,9 +612,32 @@ const mgroup=(f,n=1,s=1)=>`<div class="mg${n?'':' zero'}"><div class="mg-row">${
   reset();
 })();
 
+/* ---------- créneau 1 : démonstration du méthane ---------- */
+(function(){
+  const dem=$('#dem'),fb=$('#demofb'),go=$('#demoGo'),pred=$('#pred');
+  const P=[['Rien de particulier : la bulle éclate comme n’importe quelle bulle de savon.',false],['Le gaz s’enflamme : il y a une flamme, de la chaleur, et la bulle disparaît.',true],['La bulle gèle sur place.',false]];
+  P.forEach(([t,ok],j)=>{const b=el(`<button class="choice" data-j="${j}">${t}</button>`);b.onclick=()=>{
+    $$('.choice',pred).forEach(x=>{x.disabled=true;x.classList.remove('ok','ko')});
+    b.classList.add(ok?'ok':'ko');
+    $$('.choice',pred).forEach((x,k)=>{if(P[k][1])x.classList.add('ok')});
+    fb.className='fb';fb.textContent=ok?'Bonne prévision : le méthane est un gaz combustible. Regarde maintenant ce qui se passe.':'Pas tout à fait : le méthane est un gaz combustible, il peut brûler. Regarde ce qui se passe.'};pred.appendChild(b)});
+  let timers=[];
+  const clear=()=>{timers.forEach(clearTimeout);timers=[]};
+  function reset(){clear();dem.classList.remove('run','fire','out');go.disabled=false;fb.className='fb';fb.textContent='Fais ta prévision, puis regarde la démonstration (ou lance l’animation).'}
+  function result(){fb.className='fb ok';fb.textContent='Une flamme, de la chaleur et de la lumière : le méthane a brûlé. La bulle a disparu : le méthane a été consommé, c’est un réactif. Les produits sont invisibles.'}
+  go.onclick=()=>{
+    reset();go.disabled=true;
+    if(reduce){dem.classList.add('out');result();return}
+    requestAnimationFrame(()=>{dem.classList.add('run');
+      timers.push(setTimeout(()=>dem.classList.add('fire'),1400));
+      timers.push(setTimeout(()=>{dem.classList.remove('fire');dem.classList.add('out');result()},2500))});
+  };
+  $('#demoAgain').onclick=reset;
+})();
+
 /* ---------- créneau 1 : réactif ou produit ---------- */
 (function(){
-  const R=[['Bicarbonate de sodium','réactif','Il réagit avec le vinaigre : il disparaît peu à peu.'],['Vinaigre','réactif','Il réagit avec le bicarbonate : il est consommé.'],['Dioxyde de carbone (le gaz)','produit','Il apparaît pendant la transformation : ce sont les bulles.']];
+  const R=[['Méthane (CH₄)','réactif','Il est dans la bulle et il brûle : il disparaît.'],['Dioxygène de l’air (O₂)','réactif','Sans air, pas de flamme : le dioxygène est consommé.'],['Dioxyde de carbone (CO₂)','produit','Il apparaît pendant la combustion, mais c’est un gaz invisible.'],['Eau (H₂O, sous forme de vapeur)','produit','Elle apparaît aussi, invisible : on la repère par de la buée sur un verre froid.']];
   const box=$('#cls');
   R.forEach(([n,ans,why])=>{
     const c=el(`<div class="card"><h4>${n}</h4><div class="row" style="margin-top:10px"><button class="btn alt" data-a="réactif">réactif</button><button class="btn alt" data-a="produit">produit</button></div><p class="res" style="margin-top:8px;min-height:22px" aria-live="polite"></p></div>`);
