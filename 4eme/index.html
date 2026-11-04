@@ -263,6 +263,20 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
 .bigeq{font:500 clamp(18px,3vw,28px)/1.5 var(--f-mono);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .steps ol{margin:8px 0 0;padding-left:20px}.steps li{margin:4px 0}
 .cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+/* modèles boules et bâtons */
+.msvg{display:block;overflow:visible;flex:none}
+.msvg .bd{stroke:var(--glass);stroke-linecap:round;fill:none}
+.msvg .ab{stroke:var(--glass);stroke-width:1.5}
+.mgs{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
+.mg{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 12px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);max-width:100%}
+.mg-row{display:flex;flex-wrap:wrap;gap:10px 14px;justify-content:center;align-items:center}
+.mg-cap{font:600 14px var(--f-mono)}
+.mg.zero{opacity:.6;border-style:dashed}
+.mg-none{font:500 20px var(--f-mono);color:var(--muted);padding:6px 10px}
+.mop{font:500 24px var(--f-mono);color:var(--muted)}
+.mshape{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--muted);margin:8px 0 12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
 </style>
 </head>
 <body>
@@ -366,8 +380,9 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
     <div class="grid g3" id="palette"></div>
 
     <h3>Quelques molécules à connaître</h3>
+    <div class="legend"><span>● une boule = un atome</span><span>▬ un bâtonnet = une liaison</span><span>═ deux bâtonnets = liaison double</span></div>
     <div class="tscroll"><table>
-      <thead><tr><th>Nom</th><th>Formule</th><th>Atomes</th><th>Total</th></tr></thead>
+      <thead><tr><th>Nom</th><th>Formule</th><th>Modèle</th><th>Atomes</th></tr></thead>
       <tbody id="moltab"></tbody></table></div>
 
     <h3>Construis la molécule</h3>
@@ -471,12 +486,44 @@ const atomsOf=a=>ORDER.filter(s=>a[s]).map(s=>atom(s,a[s])).join('');
 const tot=a=>Object.values(a).reduce((x,y)=>x+y,0);
 const gcd=(a,b)=>b?gcd(b,a%b):a;
 const MOL=[
-  {n:'Eau',f:'H₂O',a:{H:2,O:1}},
-  {n:'Dioxygène',f:'O₂',a:{O:2}},
-  {n:'Dihydrogène',f:'H₂',a:{H:2}},
-  {n:'Dioxyde de carbone',f:'CO₂',a:{C:1,O:2}},
-  {n:'Méthane',f:'CH₄',a:{C:1,H:4}},
-  {n:'Ammoniac',f:'NH₃',a:{N:1,H:3}}];
+  {n:'Eau',f:'H₂O',a:{H:2,O:1},d:'Molécule coudée : l’oxygène au milieu, un H de chaque côté.'},
+  {n:'Dioxygène',f:'O₂',a:{O:2},d:'Deux atomes O reliés par une liaison double (deux bâtonnets).'},
+  {n:'Dihydrogène',f:'H₂',a:{H:2},d:'Deux atomes H reliés par une liaison simple (un bâtonnet).'},
+  {n:'Dioxyde de carbone',f:'CO₂',a:{C:1,O:2},d:'Molécule alignée : le C au milieu, un O de chaque côté, deux liaisons doubles.'},
+  {n:'Méthane',f:'CH₄',a:{C:1,H:4},d:'Un C au centre, relié à 4 H.'},
+  {n:'Ammoniac',f:'NH₃',a:{N:1,H:3},d:'Un N au centre, relié à 3 H.'}];
+
+/* Modèles boules et bâtons : une boule = un atome, un trait = une liaison (2 traits = liaison double, 3 = triple).
+   Mêmes tailles d’atomes partout : H petit, C, O et N plus gros, comme dans les kits. */
+const RAD={H:10,C:16,O:15,N:15};
+const GEO={
+  'H₂':{a:[['H',0,0],['H',38,0]],b:[[0,1,1]]},
+  'O₂':{a:[['O',0,0],['O',46,0]],b:[[0,1,2]]},
+  'N₂':{a:[['N',0,0],['N',46,0]],b:[[0,1,3]]},
+  'C':{a:[['C',0,0]],b:[]},
+  'H₂O':{a:[['O',0,0],['H',-28,24],['H',28,24]],b:[[0,1,1],[0,2,1]]},
+  'CO₂':{a:[['C',0,0],['O',-50,0],['O',50,0]],b:[[0,1,2],[0,2,2]]},
+  'CH₄':{a:[['C',0,0],['H',-32,-28],['H',32,-28],['H',-32,28],['H',32,28]],b:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]]},
+  'NH₃':{a:[['N',0,0],['H',0,-38],['H',-33,24],['H',33,24]],b:[[0,1,1],[0,2,1],[0,3,1]]},
+  'H₂O₂':{a:[['O',-22,0],['O',22,0],['H',-48,-28],['H',48,28]],b:[[0,1,1],[0,2,1],[1,3,1]]},
+  'C₃H₈':{a:[['C',-42,12],['C',0,-12],['C',42,12],['H',-18,-46],['H',18,-46],['H',-74,-2],['H',-60,40],['H',-30,44],['H',74,-2],['H',60,40],['H',30,44]],
+          b:[[0,1,1],[1,2,1],[1,3,1],[1,4,1],[0,5,1],[0,6,1],[0,7,1],[2,8,1],[2,9,1],[2,10,1]]}
+};
+const molSVG=(f,s=1)=>{
+  const g=GEO[f];if(!g)return '';
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  g.a.forEach(([e,x,y])=>{const r=RAD[e];x0=Math.min(x0,x-r);x1=Math.max(x1,x+r);y0=Math.min(y0,y-r);y1=Math.max(y1,y+r)});
+  x0-=4;x1+=4;y0-=4;y1+=4;
+  const OFF={1:[0],2:[-3.6,3.6],3:[-6.5,0,6.5]};
+  const bonds=g.b.map(([i,j,k])=>{
+    const [,ax,ay]=g.a[i],[,bx,by]=g.a[j],dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy),nx=-dy/L,ny=dx/L;
+    return OFF[k].map(o=>`<line class="bd" style="stroke-width:${k===1?6:3.2}" x1="${(ax+nx*o).toFixed(1)}" y1="${(ay+ny*o).toFixed(1)}" x2="${(bx+nx*o).toFixed(1)}" y2="${(by+ny*o).toFixed(1)}"/>`).join('')}).join('');
+  const atoms=g.a.map(([e,x,y])=>`<circle class="ab" cx="${x}" cy="${y}" r="${RAD[e]}" fill="${AT[e].c}"/><text x="${x}" y="${y}" dy=".36em" text-anchor="middle" fill="${AT[e].t}" style="font:600 ${e==='H'?12:15}px var(--f-mono)">${e}</text>`).join('');
+  const w=x1-x0,h=y1-y0;
+  return `<svg class="msvg" role="img" aria-label="Modèle de la molécule ${f}" viewBox="${x0} ${y0} ${w} ${h}" width="${(w*s).toFixed(0)}" height="${(h*s).toFixed(0)}">${bonds}${atoms}</svg>`;
+};
+/* un groupe = n exemplaires d’une même molécule, avec sa formule (et le coefficient) dessous */
+const mgroup=(f,n=1,s=1)=>`<div class="mg${n?'':' zero'}"><div class="mg-row">${n?Array(n).fill(molSVG(f,s)).join(''):'<span class="mg-none">0</span>'}</div><div class="mg-cap ion">${n>1?n+' ':''}${f}</div></div>`;
 
 /* ---------- sécurité ---------- */
 (function(){
@@ -541,24 +588,26 @@ const MOL=[
 (function(){
   const P=[['H','Le plus léger de tous les atomes.'],['C','Dans le charbon, le graphite, le sucre.'],['O','Environ un cinquième de l’air.'],['N','Environ quatre cinquièmes de l’air.']];
   P.forEach(([s,d])=>$('#palette').appendChild(el(`<div class="card" style="display:flex;gap:14px;align-items:center"><span class="at" style="width:46px;height:46px;font-size:20px;background:${AT[s].c};color:${AT[s].t}">${s}</span><div><h4>${AT[s].n}</h4><p class="note">Boule ${AT[s].w} · ${d}</p></div></div>`)));
-  $('#moltab').innerHTML=MOL.map(m=>`<tr><td>${m.n}</td><td class="ion">${m.f}</td><td><div class="atoms">${atomsOf(m.a)}</div></td><td>${tot(m.a)} atome${tot(m.a)>1?'s':''}</td></tr>`).join('');
+  $('#moltab').innerHTML=MOL.map(m=>`<tr><td>${m.n}</td><td class="ion">${m.f}</td><td>${molSVG(m.f,1.15)}</td><td>${tot(m.a)} atome${tot(m.a)>1?'s':''} :<br>${ORDER.filter(e=>m.a[e]).map(e=>m.a[e]+' '+e).join(', ')}</td></tr>`).join('');
 
   const box=$('#builder');let cur=MOL[0],list=[];
   box.innerHTML=`<div class="tabs" id="bTargets" role="tablist" aria-label="Molécule à construire">${MOL.map((m,i)=>`<button role="tab" aria-selected="${i===0}" data-i="${i}">${m.f}</button>`).join('')}</div>
   <p style="margin-top:12px"><b id="bName"></b> · formule <span class="ion" id="bF"></span></p>
   <div class="row" style="margin-top:10px">${['H','C','O','N'].map(s=>`<button class="btn alt addat" data-s="${s}" aria-label="Ajouter un atome de ${AT[s].n}">${atom(s)}<span>+1</span></button>`).join('')}<button class="btn alt" id="bClear">Vider</button></div>
   <div class="plate" id="bPlate" aria-live="polite"></div>
-  <div class="fb" id="bFb" aria-live="polite"></div>`;
-  const plate=$('#bPlate'),fb=$('#bFb');
+  <div class="fb" id="bFb" aria-live="polite"></div>
+  <div class="mshape" id="bModel"></div>`;
+  const plate=$('#bPlate'),fb=$('#bFb'),bm=$('#bModel');
   function draw(){
     $('#bName').textContent=cur.n;$('#bF').textContent=cur.f;
-    plate.innerHTML='';
+    plate.innerHTML='';bm.innerHTML='';
     list.forEach((s,i)=>{const b=el(`<button aria-label="Retirer cet atome de ${AT[s].n}">${atom(s)}</button>`);b.onclick=()=>{list.splice(i,1);draw()};plate.appendChild(b)});
     const have={};list.forEach(s=>have[s]=(have[s]||0)+1);
     const miss=[],extra=[];
     ORDER.forEach(s=>{const d=(cur.a[s]||0)-(have[s]||0);if(d>0)miss.push(`${d} atome${d>1?'s':''} ${s}`);if(d<0)extra.push(`${-d} atome${-d>1?'s':''} ${s}`)});
     if(!list.length){fb.className='fb';fb.textContent=`Construis la molécule ${cur.f} : il te faut ${ORDER.filter(s=>cur.a[s]).map(s=>cur.a[s]+' '+s).join(' et ')}.`;return}
-    if(!miss.length&&!extra.length){fb.className='fb ok';fb.textContent=`Bravo : ${cur.f} contient ${ORDER.filter(s=>cur.a[s]).map(s=>cur.a[s]+' atome'+(cur.a[s]>1?'s':'')+' '+s).join(' et ')}, soit ${tot(cur.a)} atome${tot(cur.a)>1?'s':''} au total.`;return}
+    if(!miss.length&&!extra.length){fb.className='fb ok';fb.textContent=`Bravo : ${cur.f} contient ${ORDER.filter(s=>cur.a[s]).map(s=>cur.a[s]+' atome'+(cur.a[s]>1?'s':'')+' '+s).join(' et ')}, soit ${tot(cur.a)} atome${tot(cur.a)>1?'s':''} au total.`;
+      bm.innerHTML=mgroup(cur.f,1,1.5)+`<p class="note" style="flex:1;min-width:200px"><b>Voilà le modèle de ${cur.n.toLowerCase()}.</b> ${cur.d}</p>`;return}
     fb.className='fb ko';
     fb.textContent=(miss.length?'Il te manque '+miss.join(' et ')+'. ':'')+(extra.length?'Tu as '+extra.join(' et ')+' en trop.':'');
   }
@@ -568,8 +617,8 @@ const MOL=[
   draw();
 
   // indice / coefficient
-  const card=(t,sub,a,txt)=>`<div class="card"><h4 class="ion">${t}</h4><p class="note" style="margin:4px 0 8px">${sub}</p><div class="atoms">${atomsOf(a)}</div><p style="margin-top:8px">${txt}</p></div>`;
-  $('#idx').innerHTML=card('H₂O','1 molécule d’eau',{H:2,O:1},'3 atomes : 2 H et 1 O.')+card('2 H₂O','2 molécules d’eau',{H:4,O:2},'6 atomes : 4 H et 2 O. Le coefficient 2 multiplie tout.')+card('H₂O₂','1 molécule d’eau oxygénée',{H:2,O:2},'4 atomes : 2 H et 2 O. Autre indice, autre substance : ce n’est plus de l’eau.');
+  const card=(t,sub,f,n,txt)=>`<div class="card"><h4 class="ion">${t}</h4><p class="note" style="margin:4px 0 10px">${sub}</p><div class="mgs">${mgroup(f,n,.85)}</div><p style="margin-top:10px">${txt}</p></div>`;
+  $('#idx').innerHTML=card('H₂O','1 molécule d’eau','H₂O',1,'3 atomes : 2 H et 1 O.')+card('2 H₂O','2 molécules d’eau','H₂O',2,'6 atomes : 4 H et 2 O. Le coefficient 2 multiplie tout.')+card('H₂O₂','1 molécule d’eau oxygénée','H₂O₂',1,'4 atomes : 2 H et 2 O. Autre indice, autre substance : ce n’est plus de l’eau.');
   const Q=[['Combien d’atomes dans une molécule de CH₄ ?','5 atomes : 1 C et 4 H.'],['Le dioxygène O₂ est-il un atome ou une molécule ?','Une molécule, faite de 2 atomes O.'],['H₂ et 2 H : est-ce la même chose ?','Non. H₂ est une molécule de 2 atomes liés, 2 H sont deux atomes séparés.']];
   Q.forEach(([q,a])=>{const c=el(`<div class="qa"><p>${q}</p><button class="btn alt" style="align-self:start">Voir la réponse</button><div class="a"><p>${a}</p></div></div>`);$('button',c).onclick=()=>c.classList.add('open');$('#q2').appendChild(c)});
 })();
@@ -581,14 +630,14 @@ const MOL=[
   const box=$('#comb');
   const step=i=>`<span class="stepper"><button data-i="${i}" data-d="-1" aria-label="Une molécule de ${S[i].f} en moins">−</button><output id="n${i}" aria-live="polite">1</output><button data-i="${i}" data-d="1" aria-label="Une molécule de ${S[i].f} en plus">+</button></span> <span class="ion">${S[i].f}</span>`;
   box.innerHTML=`<div class="eqrow"><span class="sp">${step(0)}</span><span>+</span><span class="sp">${step(1)}</span><span>→</span><span class="sp">${step(2)}</span><span>+</span><span class="sp">${step(3)}</span></div>
-  <div class="grid g2" style="margin-top:16px"><div><h4 style="font-size:15px;color:var(--muted);margin-bottom:6px">Atomes avant</h4><div class="atoms" id="cL"></div></div><div><h4 style="font-size:15px;color:var(--muted);margin-bottom:6px">Atomes après</h4><div class="atoms" id="cR"></div></div></div>
+  <div class="grid g2" style="margin-top:16px"><div><h4 style="font-size:15px;color:var(--muted);margin-bottom:6px">Molécules avant</h4><div class="mgs" id="cL"></div></div><div><h4 style="font-size:15px;color:var(--muted);margin-bottom:6px">Molécules après</h4><div class="mgs" id="cR"></div></div></div>
   <div class="tally" id="cT"></div><div class="fb" id="cFb" aria-live="polite"></div>`;
   function calc(){
     const L={},R={};
     S.forEach((s,i)=>Object.entries(s.a).forEach(([e,k])=>{(s.side?R:L)[e]=((s.side?R:L)[e]||0)+k*n[i]}));
     const els=['C','H','O'];
-    $('#cL').innerHTML=els.map(e=>atom(e,L[e]||0)).join('')||'';
-    $('#cR').innerHTML=els.map(e=>atom(e,R[e]||0)).join('')||'';
+    const side=k=>S.map((x,i)=>x.side===k?mgroup(x.f,n[i],.7):'').filter(Boolean).join('<span class="mop">+</span>');
+    $('#cL').innerHTML=side(0);$('#cR').innerHTML=side(1);
     let bal=true;
     $('#cT').innerHTML=els.map(e=>{const l=L[e]||0,r=R[e]||0,ok=l===r;if(!ok)bal=false;return `<div class="${ok?'ok':'ko'}">${e} : ${l} → ${r} ${ok?'✓':'✗'}</div>`}).join('');
     const all=n.every(x=>x>0);
@@ -604,19 +653,17 @@ const MOL=[
 
 /* ---------- créneau 4 : échelle des écritures, équilibrage ---------- */
 (function(){
-  const mol=(f,a)=>`<span class="mol" title="${f}">${atomsOf(a)}</span>`;
-  const CH4={C:1,H:4},O2={O:2},CO2={C:1,O:2},H2O={H:2,O:1};
   const L=[
     ['1 · En mots',`<p class="bigeq" style="font-family:var(--f-body)">méthane + dioxygène → dioxyde de carbone + eau</p><p class="note" style="margin-top:8px">C’est ce que tu observes : ce qui disparaît (réactifs) → ce qui apparaît (produits).</p>`],
-    ['2 · Avec les modèles',`<div class="bigeq">${mol('CH₄',CH4)}<span>+</span>${mol('O₂',O2)}${mol('O₂',O2)}<span>→</span>${mol('CO₂',CO2)}<span>+</span>${mol('H₂O',H2O)}${mol('H₂O',H2O)}</div><p class="note" style="margin-top:8px">C’est ce que tu as construit avec le kit : 1 CH₄ et 2 O₂ donnent 1 CO₂ et 2 H₂O.</p>`],
+    ['2 · Avec les modèles',`<div class="mgs">${mgroup('CH₄',1,.9)}<span class="mop">+</span>${mgroup('O₂',2,.9)}<span class="mop">→</span>${mgroup('CO₂',1,.9)}<span class="mop">+</span>${mgroup('H₂O',2,.9)}</div><p class="note" style="margin-top:8px">C’est ce que tu as construit avec le kit : 1 CH₄ et 2 O₂ donnent 1 CO₂ et 2 H₂O.</p>`],
     ['3 · Avec les formules',`<p class="bigeq"><span>CH₄ + O₂ → CO₂ + H₂O</span></p><p class="note" style="margin-top:8px">Première écriture, pas encore ajustée : 4 H à gauche, 2 H à droite, 2 O à gauche, 3 O à droite. Les atomes ne se conservent pas, il faut ajuster.</p>`],
     ['4 · Ajustée',`<p class="bigeq"><span>CH₄ + 2 O₂ → CO₂ + 2 H₂O</span></p><p class="note" style="margin-top:8px">Les coefficients 2 rétablissent l’égalité : 1 C, 4 H et 4 O de chaque côté. C’est l’équation de la réaction.</p>`]];
   const tabs=$('#ladderTabs'),lad=$('#ladder');
   L.forEach(([t,h],i)=>{const b=el(`<button role="tab" aria-selected="${i===0}">${t}</button>`);b.onclick=()=>{$$('button',tabs).forEach(x=>x.setAttribute('aria-selected',x===b));lad.innerHTML=h};tabs.appendChild(b)});
   lad.innerHTML=L[0][1];
 
-  const card=(t,sub,a,txt)=>`<div class="card"><h4 class="ion">${t}</h4><p class="note" style="margin:4px 0 8px">${sub}</p><div class="atoms">${atomsOf(a)}</div><p style="margin-top:8px">${txt}</p></div>`;
-  $('#idx2').innerHTML=card('2 H₂O','coefficient 2 : 2 molécules',{H:4,O:2},'Le nombre de molécules change, la substance reste de l’eau.')+card('H₂O₂','indice 2 sur O : autre molécule',{H:2,O:2},'La substance change : ce n’est plus de l’eau. On ne fait jamais cela pour ajuster.');
+  const card=(t,sub,f,n,txt)=>`<div class="card"><h4 class="ion">${t}</h4><p class="note" style="margin:4px 0 10px">${sub}</p><div class="mgs">${mgroup(f,n,.85)}</div><p style="margin-top:10px">${txt}</p></div>`;
+  $('#idx2').innerHTML=card('2 H₂O','coefficient 2 : 2 molécules','H₂O',2,'Le nombre de molécules change, la substance reste de l’eau.')+card('H₂O₂','indice 2 sur O : autre molécule','H₂O₂',1,'La substance change : ce n’est plus de l’eau. On ne fait jamais cela pour ajuster.');
 
   const EQ=[
     {s:'1',t:'Dihydrogène + dioxygène → eau',R:[['H₂',{H:2}],['O₂',{O:2}]],P:[['H₂O',{H:2,O:1}]],sol:[2,1,2]},
@@ -626,7 +673,7 @@ const MOL=[
     {s:'Défi',t:'Défi : combustion du propane',R:[['C₃H₈',{C:3,H:8}],['O₂',{O:2}]],P:[['CO₂',{C:1,O:2}],['H₂O',{H:2,O:1}]],sol:[1,5,3,4]}];
   const box=$('#eqlab');let cur=0,co=[];
   box.innerHTML=`<div class="tabs" id="eqTabs" role="tablist" aria-label="Équations à ajuster">${EQ.map((e,i)=>`<button role="tab" aria-selected="${i===0}" aria-label="${e.t}" data-i="${i}">${e.s}</button>`).join('')}</div>
-  <p class="note" id="eqTitle" style="margin-top:10px"></p><div class="eqrow" id="eqrow" style="margin-top:12px"></div><div class="tally" id="eqt"></div><div class="fb" id="eqfb" aria-live="polite"></div>`;
+  <p class="note" id="eqTitle" style="margin-top:10px"></p><div class="eqrow" id="eqrow" style="margin-top:12px"></div><div class="mgs" id="eqmods" style="margin-top:14px"></div><div class="tally" id="eqt"></div><div class="fb" id="eqfb" aria-live="polite"></div>`;
   const eqs=(e,c)=>{const t=(sp,off)=>sp.map(([f],i)=>(c[off+i]>1?c[off+i]+' ':'')+f).join(' + ');return t(e.R,0)+' → '+t(e.P,e.R.length)};
   function build(){
     const e=EQ[cur];co=Array(e.R.length+e.P.length).fill(1);
@@ -644,6 +691,8 @@ const MOL=[
     const e=EQ[cur],Lf={},Rt={};
     e.R.forEach(([f,a],i)=>Object.entries(a).forEach(([k,v])=>Lf[k]=(Lf[k]||0)+v*co[i]));
     e.P.forEach(([f,a],i)=>Object.entries(a).forEach(([k,v])=>Rt[k]=(Rt[k]||0)+v*co[e.R.length+i]));
+    const grp=(sp,off)=>sp.map(([f],i)=>mgroup(f,co[off+i],.74)).join('<span class="mop">+</span>');
+    $('#eqmods').innerHTML=grp(e.R,0)+'<span class="mop">→</span>'+grp(e.P,e.R.length);
     const els=ORDER.filter(k=>Lf[k]||Rt[k]);let ok=true;
     $('#eqt').innerHTML=els.map(k=>{const g=(Lf[k]||0)===(Rt[k]||0);if(!g)ok=false;return `<div class="${g?'ok':'ko'}">${k} : ${Lf[k]||0} → ${Rt[k]||0} ${g?'✓':'✗'}</div>`}).join('');
     const fb=$('#eqfb');
