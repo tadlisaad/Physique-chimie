@@ -226,7 +226,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
     <div class="brand">Ions, pH et<br>réaction acide-fer<small>Physique-chimie · 3ème</small></div>
     <a href="#creneau-1" data-s="creneau-1"><b>1</b><span>Cours · Reconnaître les ions</span></a>
     <a href="#creneau-2" data-s="creneau-2"><b>2</b><span>TP 1 · Qui se cache dans le flacon ?</span></a>
-    <a href="#creneau-3" data-s="creneau-3"><b>3</b><span>TP 2 · Enquête sur cinq solutions</span></a>
+    <a href="#creneau-3" data-s="creneau-3"><b>3</b><span>TP 2 · Démonstration : écrire le protocole</span></a>
     <a href="#creneau-4" data-s="creneau-4"><b>4</b><span>Cours · pH, H⁺ et HO⁻, dilution</span></a>
     <a href="#creneau-5" data-s="creneau-5"><b>5</b><span>TP 3 · Mesurer, diluer, neutraliser</span></a>
     <a href="#creneau-6" data-s="creneau-6"><b>6</b><span>TP 4 · Le fer dans l’acide</span></a>
@@ -331,17 +331,20 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
 
   <!-- CRENEAU 3 -->
   <section class="slot" id="creneau-3">
-    <div class="kicker"><span>Créneau 3</span><span class="fmt">TP 2 · demi-groupe, trinômes</span></div>
-    <h2>Enquête sur cinq solutions</h2>
-    <ul class="goals"><li>Je construis un arbre de décision</li><li>Je croise deux tests</li><li>Je déduis la formule grâce à la neutralité</li></ul>
-    <h3>Ton plan avant de manipuler</h3>
-    <div class="card" id="tree"></div>
-    <h3>Les cinq flacons inconnus</h3>
-    <p class="note">Même paillasse qu’au TP 1. Un test négatif est une information : un flacon qui ne donne rien avec la soude ne contient pas « rien ».</p>
+    <div class="kicker"><span>Créneau 3</span><span class="fmt">TP 2 · démonstration · noté sur 10</span></div>
+    <h2>Démonstration : écrire le protocole</h2>
+    <ul class="goals"><li>J’écris un protocole avant de voir les résultats</li><li>Je schématise un tube avant et après la soude</li><li>J’interprète la démonstration et je reconnais l’ion</li></ul>
+    <h3>Ta mission</h3>
+    <p class="lead">Quatre béchers A, B, C et D contiennent des solutions presque incolores. Tu n’as qu’un seul réactif : la soude. Écris le protocole qui permettra de reconnaître l’ion de chaque bécher, avant de voir quoi que ce soit.</p>
+    <h3>Tableau d’identification</h3>
+    <div class="tscroll"><table><thead><tr><th>Ion</th><th>Couleur du précipité avec la soude</th></tr></thead><tbody>
+      <tr><td class="mono">Cu²⁺</td><td>bleu</td></tr><tr><td class="mono">Fe²⁺</td><td>vert</td></tr><tr><td class="mono">Fe³⁺</td><td>orangé</td></tr><tr><td class="mono">Zn²⁺</td><td>blanc</td></tr><tr><td class="mono">Ag⁺</td><td>brun</td></tr></tbody></table></div>
+    <h3>Ton protocole</h3>
+    <div class="card" id="proto"></div>
+    <h3>La démonstration</h3>
+    <p class="note">Quand ton protocole est écrit, le professeur fait la démonstration. Ici, à toi de jouer : touche un tube pour ajouter une goutte de soude (5 gouttes), observe, puis note l’ion que tu reconnais.</p>
     <div id="tp2"></div>
-    <h3>De la neutralité à la formule</h3>
-    <div class="card" id="neutral"></div>
-    <div class="tnote"><b>Notes prof</b>Accroche 5 min, stratégie 7, enquête 28, mise en commun 10, ticket de sortie 5. On accepte les deux ordres (soude d’abord ou nitrate d’argent d’abord). Le sodium Na⁺ n’est pas identifiable avec ces deux tests. Analogie : croiser des alibis, un seul indice ne suffit pas. Données des flacons : à adapter dans la constante TP2 du code si le flacon 3 passe au sulfate de zinc.</div>
+    <div class="tnote"><b>Notes prof</b>Accroche 5 min, consigne 5, rédaction du protocole et du schéma 17 (avant tout résultat), démonstration 13, questions 12, bilan 3. Contenus : A sulfate de zinc, B sulfate de cuivre II, C sulfate de fer II, D nitrate d’argent. Seul réactif : la soude. Le précipité blanc de zinc se redissout avec un excès de soude (3 à 5 gouttes). Barème sur 10 : protocole 4, schéma 2, tableau 1, questions 3. Le protocole attendu : problème et hypothèse, matériel, étapes numérotées avec verbes d’action et quantités, résultats attendus « si… alors… ».</div>
   </section>
 
   <!-- CRENEAU 4 -->
@@ -621,14 +624,15 @@ function bench(root,cfg){
   });
   wrap.appendChild(toast);
   if(cfg.noLog)return;
-  const log=el('<div class="tscroll"><table><thead><tr><th>Flacon</th><th>Couleur</th><th>Soude</th><th>AgNO₃</th><th>Ions présents ?</th><th>Contenu</th></tr></thead><tbody></tbody></table></div>');
+  const hasAg=cfg.rows.some(r=>r.reagent==='ag');
+  const log=el('<div class="tscroll"><table><thead><tr><th>Flacon</th><th>Couleur</th><th>Soude</th>'+(hasAg?'<th>AgNO₃</th>':'')+'<th>Ions présents ?</th><th>Contenu</th></tr></thead><tbody></tbody></table></div>');
   const tbody=$('tbody',log);
   const sel={};
   cfg.rows[0].flasks.forEach(f=>{
     sel[f.id]=new Set();
-    const tr=el(`<tr data-f="${f.id}"><td><b>${f.id}</b></td><td>${f.look}</td><td class="c-soude">…</td><td class="c-ag">…</td><td><div class="ions"></div><div class="res" aria-live="polite"></div></td><td class="c-name note">?</td></tr>`);
+    const tr=el(`<tr data-f="${f.id}"><td><b>${f.id}</b></td><td>${f.look}</td><td class="c-soude">…</td>${hasAg?'<td class="c-ag">…</td>':''}<td><div class="ions"></div><div class="res" aria-live="polite"></div></td><td class="c-name note">?</td></tr>`);
     const box=$('.ions',tr);
-    IONS.forEach(i=>{const b=el(`<button aria-pressed="false">${i}</button>`);b.onclick=()=>{const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);on?sel[f.id].add(i):sel[f.id].delete(i)};box.appendChild(b)});
+    (cfg.ions||IONS).forEach(i=>{const b=el(`<button aria-pressed="false">${i}</button>`);b.onclick=()=>{const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);on?sel[f.id].add(i):sel[f.id].delete(i)};box.appendChild(b)});
     tbody.appendChild(tr);
   });
   function fill(id,r,txt){const c=$(`tr[data-f="${id}"] .c-${r}`,log);if(c)c.textContent=txt}
@@ -666,17 +670,16 @@ bench($('#tp1'),{rows:[
   r.append(row,s);
 })();
 
-/* données TP 2 (à adapter si le flacon 3 change de composé) */
+/* données TP 2 : démonstration, soude seule */
+const BRUN={c:'#8a5a32',t:'précipité brun'};
 const TP2=[
-  {id:'1',look:'incolore',liquid:'#e6f0f3',name:'chlorure de sodium',ionsTxt:'Na⁺, Cl⁻',truth:['Cl⁻'],ag:AGB},
-  {id:'2',look:'vert très pâle',liquid:'#d6ead0',name:'sulfate de fer II',ionsTxt:'Fe²⁺, SO₄²⁻',truth:['Fe²⁺'],soude:SOUDE.vert},
-  {id:'3',look:'incolore',liquid:'#e6f0f3',name:'chlorure de zinc',ionsTxt:'Zn²⁺, Cl⁻',truth:['Zn²⁺','Cl⁻'],soude:SOUDE.blanc,ag:AGB},
-  {id:'4',look:'bleue',liquid:'#58a8e6',name:'sulfate de cuivre II',ionsTxt:'Cu²⁺, SO₄²⁻',truth:['Cu²⁺'],soude:SOUDE.bleu},
-  {id:'5',look:'jaune-orangé',liquid:'#ecc15a',name:'chlorure de fer III',ionsTxt:'Fe³⁺, Cl⁻',truth:['Fe³⁺','Cl⁻'],soude:SOUDE.orange,ag:AGB}
+  {id:'A',look:'incolore',liquid:'#e6f0f3',name:'sulfate de zinc',ionsTxt:'Zn²⁺, SO₄²⁻',truth:['Zn²⁺'],soude:SOUDE.blanc},
+  {id:'B',look:'à peine bleutée',liquid:'#d4e9f4',name:'sulfate de cuivre II',ionsTxt:'Cu²⁺, SO₄²⁻',truth:['Cu²⁺'],soude:SOUDE.bleu},
+  {id:'C',look:'à peine verdâtre',liquid:'#dcebd8',name:'sulfate de fer II',ionsTxt:'Fe²⁺, SO₄²⁻',truth:['Fe²⁺'],soude:SOUDE.vert},
+  {id:'D',look:'incolore',liquid:'#e6f0f3',name:'nitrate d’argent',ionsTxt:'Ag⁺, NO₃⁻',truth:['Ag⁺'],soude:BRUN}
 ];
-bench($('#tp2'),{rows:[
-  {reagent:'soude',need:5,title:'Support « soude »',hint:'5 gouttes, pas plus',flasks:TP2},
-  {reagent:'ag',need:3,title:'Support « nitrate d’argent »',hint:'3 gouttes par tube',flasks:[TEM,...TP2]}
+bench($('#tp2'),{ions:['Cu²⁺','Fe²⁺','Fe³⁺','Zn²⁺','Ag⁺'],rows:[
+  {reagent:'soude',need:5,title:'Support « soude »',hint:'5 gouttes, pas plus',flasks:TP2}
 ]});
 
 /* enquêtes */
@@ -697,34 +700,12 @@ bench($('#tp2'),{rows:[
     box.appendChild(b)});
 })();
 
-/* arbre de décision */
+/* protocole */
 (function(){
-  $('#tree').innerHTML=`<div style="display:grid;gap:10px">
-  <div class="callout"><b>Je verse de la soude : y a-t-il un précipité ?</b></div>
-  <div class="grid g2"><div class="qa"><b>Oui</b><p>Quelle est sa couleur ? Quel ion métallique ?</p><p class="note">… bleu, vert, orangé, blanc …</p></div>
-  <div class="qa"><b>Non</b><p>Aucun de ces métaux n’est détecté. Que puis-je tester ensuite ?</p><p class="note">… à toi de décider …</p></div></div>
-  <div class="callout"><b>Puis le nitrate d’argent : précipité blanc ?</b> Alors … et la formule ?</div></div>`;
-})();
-
-/* neutralité */
-(function(){
-  const C={'Na⁺':[1,'Na','sodium'],'Cu²⁺':[2,'Cu','cuivre II'],'Fe²⁺':[2,'Fe','fer II'],'Fe³⁺':[3,'Fe','fer III'],'Zn²⁺':[2,'Zn','zinc']};
-  const A={'Cl⁻':[1,'Cl','chlorure',0],'SO₄²⁻':[2,'SO₄','sulfate',1]};
-  const sub=n=>n===1?'':String(n).replace(/\d/g,d=>'₀₁₂₃₄₅₆₇₈₉'[d]);
-  const gcd=(a,b)=>b?gcd(b,a%b):a;
-  const box=$('#neutral');
-  box.innerHTML=`<div class="row"><label>Cation <select class="sel" id="nc">${Object.keys(C).map(k=>`<option>${k}</option>`).join('')}</select></label>
-  <label>Anion <select class="sel" id="na">${Object.keys(A).map(k=>`<option>${k}</option>`).join('')}</select></label></div>
-  <div class="balls" id="nb" style="margin:14px 0"></div><p class="mono" id="nf" style="font-size:18px"></p><p class="note" id="nt"></p>`;
-  $('#nc').value='Fe³⁺';
-  function draw(){
-    const c=C[$('#nc').value],a=A[$('#na').value],l=c[0]*a[0]/gcd(c[0],a[0]);const nc=l/c[0],na=l/a[0];
-    $('#nb').innerHTML=Array(nc).fill(`<span class="bl" style="background:var(--h-ion)">${$('#nc').value}</span>`).join('')+'<span style="margin:0 8px">+</span>'+Array(na).fill(`<span class="bl" style="background:var(--oh-ion)">${$('#na').value}</span>`).join('');
-    const f=c[1]+sub(nc)+(a[3]&&na>1?'('+a[1]+')':a[1])+sub(na);
-    $('#nf').textContent=f+'  ·  '+a[2]+' de '+c[2];
-    $('#nt').textContent=`${nc} × (+${c[0]}) + ${na} × (−${a[0]}) = ${nc*c[0]-na*a[0]} : la solution est neutre.`;
-  }
-  $('#nc').onchange=$('#na').onchange=draw;draw();
+  const F=[['Problème et hypothèse','Quelle question ? Que penses-tu trouver ?'],['Matériel','Tubes à essai, compte-gouttes, soude, papier blanc …'],['Étapes numérotées','1. Je verse … mL de … dans … 2. J’ajoute … gouttes de …'],['Résultats attendus','Si j’observe un précipité …, alors l’ion est …']];
+  const box=$('#proto');const k='proto2-';
+  box.innerHTML='<div style="display:grid;gap:12px">'+F.map(([t,p],i)=>`<label><b>${i+1}. ${t}</b><textarea rows="3" data-i="${i}" placeholder="${p}" style="width:100%;margin-top:4px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:inherit;font:inherit"></textarea></label>`).join('')+'</div><p class="note" style="margin-top:10px">Pense aussi au schéma : un tube avant et après l’ajout de soude, avec légendes et couleurs.</p>';
+  $$('textarea',box).forEach(t=>{try{t.value=localStorage.getItem(k+t.dataset.i)||''}catch(e){}t.oninput=()=>{try{localStorage.setItem(k+t.dataset.i,t.value)}catch(e){}}});
 })();
 
 /* ---------- couleurs pH ---------- */
