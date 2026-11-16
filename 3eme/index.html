@@ -1,6 +1,6 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Ions, pH et réaction acide-fer</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Concept : paillasse de labo. Rail vertical des 7 créneaux (une vraie séquence), puis une paillasse interactive par créneau.
    Les couleurs de précipités et d'indicateurs sont des données chimiques fixes ; tout le reste passe par les tokens. */
@@ -9,9 +9,9 @@
   --accent:#0a7872; --accent-fg:#ffffff; --accent-soft:#d6efec;
   --good:#1c7f45; --warn:#a85408; --bad:#bb3128;
   --h-ion:#d8481f; --oh-ion:#2468c9; --glass:#7f9aa5; --shadow:0 1px 2px rgba(19,35,43,.08),0 6px 20px rgba(19,35,43,.06);
-  --f-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
-  --f-body:'Instrument Sans','Segoe UI',system-ui,sans-serif;
-  --f-mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --f-display:'Times New Roman',Times,serif;
+  --f-body:'Times New Roman',Times,serif;
+  --f-mono:'Times New Roman',Times,serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0d1920; --surface:#15262f; --surface-2:#1d333f; --fg:#e5eff2; --muted:#9bb2bb; --line:#2b4553;
@@ -222,13 +222,12 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
 
 <div class="shell">
   <nav class="rail" aria-label="Les sept créneaux">
-    <a href="../" style="display:block;font-size:13px;padding:4px 8px;margin-bottom:6px">← Accueil</a>
     <div class="brand">Ions, pH et<br>réaction acide-fer<small>Physique-chimie · 3ème</small></div>
     <a href="#creneau-1" data-s="creneau-1"><b>1</b><span>Cours · Reconnaître les ions</span></a>
     <a href="#creneau-2" data-s="creneau-2"><b>2</b><span>TP 1 · Qui se cache dans le flacon ?</span></a>
     <a href="#creneau-3" data-s="creneau-3"><b>3</b><span>TP 2 · Démonstration : écrire le protocole</span></a>
     <a href="#creneau-4" data-s="creneau-4"><b>4</b><span>Cours · pH, H⁺ et HO⁻</span></a>
-    <a href="#creneau-5" data-s="creneau-5"><b>5</b><span>TP 3 · Mesurer le pH</span></a>
+    <a href="#creneau-5" data-s="creneau-5"><b>5</b><span>Activité · Acide ou basique ?</span></a>
     <a href="#creneau-6" data-s="creneau-6"><b>6</b><span>TP 4 · Le fer dans l’acide</span></a>
     <a href="#creneau-7" data-s="creneau-7"><b>7</b><span>Cours · Équation et métal mystère</span></a>
     <div class="tools">
@@ -359,7 +358,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
       <div class="phticks"><span>0 · acide</span><span>7 · neutre</span><span>14 · basique</span></div>
       <input type="range" class="phrange" id="phrange" min="0" max="14" step="0.1" value="7" aria-label="Valeur du pH">
       <div class="products" id="products"></div>
-      <p class="note" style="margin-top:10px">Les valeurs varient selon les marques : ce sont des ordres de grandeur, elles seront mesurées au TP 3.</p>
+      <p class="note" style="margin-top:10px">Les valeurs varient selon les marques : ce sont des ordres de grandeur, elles seront retrouvées dans les documents de l’activité du créneau 5.</p>
     </div>
 
     <h3>Le pH dit qui domine dans le stade</h3>
@@ -399,7 +398,7 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
             <circle id="burDrop" cx="104" cy="136" r="4" fill="#9bb7d6" opacity="0"/>
             <path d="M40 150 L50 244 Q52 252 60 252 H148 Q156 252 158 244 L168 150" fill="none" stroke="var(--glass)" stroke-width="3" stroke-linecap="round"/>
             <path id="bkLiq" d="M46 190 H162 L156 244 Q154 250 148 250 H60 Q54 250 52 244 Z" fill="#f1d12e" style="transition:fill .25s"/>
-            <text x="104" y="176" text-anchor="middle" font-size="12" fill="var(--fg)" font-family="IBM Plex Mono">HCl + BBT</text>
+            <text x="104" y="176" text-anchor="middle" font-size="12" fill="var(--fg)" font-family="Times New Roman">HCl + BBT</text>
           </svg>
           <div class="row"><button class="btn alt" id="tm1">−1 mL</button><button class="btn" id="tp1b">+1 mL</button><button class="btn alt" id="tp01">+0,1 mL</button></div>
         </div>
@@ -419,15 +418,16 @@ footer{margin-top:80px;padding-top:20px;border-top:1px solid var(--line);color:v
 
   <!-- CRENEAU 5 -->
   <section class="slot" id="creneau-5">
-    <div class="kicker"><span>Créneau 5</span><span class="fmt">TP 3 · demi-groupe, trinômes</span></div>
-    <h2>Mesurer le pH</h2>
-    <ul class="goals"><li>Je mesure le pH de six produits</li><li>Je classe les produits du plus acide au plus basique</li><li>Je compare mes prédictions à mes mesures</li></ul>
-    <h3>Bien mesurer, sans rien goûter</h3>
+    <div class="kicker"><span>Créneau 5</span><span class="fmt">Activité documentaire · demi-groupe</span></div>
+    <h2>Acide ou basique ?</h2>
+    <p class="lead">Comment savoir si un liquide est acide ou basique, et qu’est-ce qui les distingue au niveau des ions ?</p>
+    <ul class="goals"><li>Je lis des documents et j’en tire des informations</li><li>Je relie le pH aux ions H⁺ et HO⁻</li><li>Je classe des produits du plus acide au plus basique</li></ul>
+    <h3>Documents 1 et 2 : d’où vient le pH, et que dit-il des ions ?</h3>
     <div class="grid g2" id="gestes"></div>
-    <h3>Six produits : je prévois, puis je mesure</h3>
+    <h3>Documents 3 et 4 : je lis le pH, je conclus</h3>
     <div class="tscroll"><table id="six"></table></div>
     <p class="callout" style="margin-top:12px">Plus le pH est petit, plus la solution est acide : il y a plus d’ions H⁺ que d’ions HO⁻. Le papier pH donne une teinte, le pH-mètre une valeur plus précise.</p>
-    <div class="tnote"><b>Notes prof</b>Rappel 5 min, protocole 5, mesures 15, classement et questions 20, mise en commun 5, ticket de sortie 5. L’eau distillée donne souvent un pH proche de 6 car elle dissout le dioxyde de carbone de l’air.</div>
+    <div class="tnote"><b>Notes prof</b>Problématique et rappel 5 min, documents 1 et 2 : 7, documents 3 et 4 avec questions 1 à 6 : 13, document 5 et démonstration du papier pH : 7, question 8 et « pour aller plus loin » : 13, mise en commun 5, retiens et ticket de sortie 5. Activité sans manipulation par les élèves. Les valeurs de pH sont des ordres de grandeur : à remesurer avant la séance.</div>
   </section>
 
   <!-- CRENEAU 6 -->
@@ -718,7 +718,7 @@ class Swarm{
   step(){const {ctx,w,h}=this;ctx.clearRect(0,0,w,h);const cs=getComputedStyle(document.documentElement);
     const col={H:cs.getPropertyValue('--h-ion').trim()||'#d8481f',OH:cs.getPropertyValue('--oh-ion').trim()||'#2468c9'};
     for(const p of this.p){if(!reduce){p.x+=p.vx;p.y+=p.vy;if(p.x<10||p.x>w-10)p.vx*=-1;if(p.y<10||p.y>h-10)p.vy*=-1;p.vx+=(Math.random()-.5)*.08;p.vy+=(Math.random()-.5)*.08;p.vx=Math.max(-.9,Math.min(.9,p.vx));p.vy=Math.max(-.9,Math.min(.9,p.vy))}
-      ctx.beginPath();ctx.arc(p.x,p.y,10,0,7);ctx.fillStyle=col[p.t];ctx.fill();ctx.fillStyle='#fff';ctx.font='700 13px IBM Plex Mono, monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.t==='H'?'+':'−',p.x,p.y+1)}}
+      ctx.beginPath();ctx.arc(p.x,p.y,10,0,7);ctx.fillStyle=col[p.t];ctx.fill();ctx.fillStyle='#fff';ctx.font='700 13px Times New Roman, serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.t==='H'?'+':'−',p.x,p.y+1)}}
 }
 (function loop(){swarms.forEach(s=>s.vis&&s.step());requestAnimationFrame(loop)})();
 
@@ -791,16 +791,15 @@ class Swarm{
   upd();
 })();
 
-/* ---------- TP3 ---------- */
+/* ---------- Activité créneau 5 ---------- */
 (function(){
-  const G=[['Une goutte déposée avec un agitateur propre sur le papier pH','Jamais le papier plongé dans le gobelet.'],['pH-mètre : attendre 20 secondes','Rincer la sonde entre deux solutions.'],['Lire la teinte sur fond blanc','Comparer le papier à l’échelle, à la lumière naturelle.'],['On ne goûte rien en salle de TP','L’acide dans l’eau, jamais l’inverse. Aucun rejet à l’évier.']];
+  const G=[['Document 1 · Une histoire de mots','Au XIXe siècle, Arrhenius décrit l’acide comme libérant des ions H⁺ et la base comme libérant des ions HO⁻. En 1909, Sørensen propose le « pH », le « potentiel hydrogène ».'],['Document 2 · Qui domine ?','pH = 2 : beaucoup de H⁺, peu de HO⁻ (acide). pH = 7 : autant de H⁺ que de HO⁻ (neutre). pH = 12 : beaucoup de HO⁻, peu de H⁺ (basique).'],['Document 5 · Mode d’emploi du papier pH','Déposer une goutte sur le papier, ne jamais le plonger dans le liquide, comparer la teinte à l’échelle sur fond blanc.'],['Sécurité','On ne goûte rien. Les produits forts (soude, acide) ne se manipulent qu’avec lunettes et gants : seul le professeur les utilise.']];
   G.forEach(([a,b])=>$('#gestes').appendChild(el(`<div class="card"><h4>${a}</h4><p class="note" style="margin-top:5px">${b}</p></div>`)));
-  const S=[['Jus de citron',2,'2'],['Vinaigre blanc',2.5,'2 à 3'],['Boisson au cola',2.7,'2,5 à 3'],['Lait',6.5,'6,5'],['Eau du robinet',7.5,'7 à 8'],['Eau savonneuse',9.5,'9 à 10']];
-  const t=$('#six');t.innerHTML='<thead><tr><th>Produit</th><th>Ma prédiction</th><th>Papier pH</th><th>Mesure (pH-mètre)</th></tr></thead><tbody></tbody>';
-  S.forEach(([n,v,txt],i)=>{const tr=el(`<tr><td>${n}</td><td><select class="sel" aria-label="Prédiction ${n}"><option value="">choisir</option><option value="a">acide</option><option value="n">neutre</option><option value="b">basique</option></select></td><td class="pp">…</td><td><button class="btn alt">Mesurer</button> <span class="mm mono"></span></td></tr>`);
-    $('button',tr).onclick=()=>{$('.pp',tr).innerHTML=`<span class="swatch" style="background:${phColor(v)}"></span>teinte`;
-      const kind=v<6.5?'a':v>7.7?'b':'n';const g=$('select',tr).value;
-      $('.mm',tr).textContent='pH '+txt+(g?(g===kind||(kind==='n'&&Math.abs(v-7)<1.2&&g==='n')?'  ✓':'  ✗ ('+(kind==='a'?'acide':kind==='b'?'basique':'neutre')+')'):'')};
+  const S=[['Jus de citron',2.0,'2,0'],['Boisson au cola',2.6,'2,6'],['Lait',6.6,'6,6'],['Eau du robinet',7.4,'7,4'],['Bicarbonate de sodium',8.3,'8,3'],['Eau savonneuse',9.5,'9,5'],['Acide chlorhydrique (H⁺, Cl⁻)',1.0,'1,0'],['Vinaigre (H⁺, CH₃COO⁻)',2.5,'2,5'],['Eau déminéralisée',7.0,'7,0'],['Soude (Na⁺, HO⁻)',13.0,'13,0']];
+  const t=$('#six');t.innerHTML='<thead><tr><th>Liquide</th><th>pH mesuré</th><th>Ma conclusion</th><th>Ion qui domine</th></tr></thead><tbody></tbody>';
+  S.forEach(([n,v,txt])=>{const kind=v<6.5?'a':v>7.7?'b':'n';const okset=v<6.5?['a']:v>7.7?['b']:v<7?['a','n']:v>7?['n','b']:['n'];const name=kind==='a'?'acide':kind==='b'?'basique':'neutre';const ion=kind==='a'?'H⁺':kind==='b'?'HO⁻':'H⁺ = HO⁻';
+    const tr=el(`<tr><td>${n}</td><td class="mono"><span class="swatch" style="background:${phColor(v)}"></span> ${txt}</td><td><select class="sel" aria-label="Conclusion ${n}"><option value="">choisir</option><option value="a">acide</option><option value="n">neutre</option><option value="b">basique</option></select> <span class="mm mono"></span></td><td class="io mono"></td></tr>`);
+    $('select',tr).onchange=e=>{const g=e.target.value;$('.mm',tr).textContent=g?(okset.includes(g)?'✓':'✗ (réessaie)'):'';$('.io',tr).textContent=okset.includes(g)?ion+' · '+name+(okset.length>1?' (proche de 7)':''):''};
     $('tbody',t).appendChild(tr)});
 })();
 
@@ -884,3 +883,5 @@ class Swarm{
     box.appendChild(c)});
 })();
 </script>
+
+</body></html>
